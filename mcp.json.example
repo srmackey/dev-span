@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "contextforge": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/ABSOLUTE/PATH/TO/context-forge",
+        "contextforge"
+      ],
+      "env": {
+        "CONTEXTFORGE_HOME": "",
+        "// CONTEXTFORGE_DEV_LOG_DIR": "Set to a directory inside the repo (e.g. .system/usage-logs) when you want usage events to travel with the checkout for evaluation. You still get the normal home logs too. Alternative: CONTEXTFORGE_LOG_FILE for a full path.",
+        "// CONTEXTFORGE_LOG_FILE": "(alternative to DEV_LOG_DIR) full path to extra log file",
+        "// CONTEXTFORGE_LOG_LEVEL": "INFO or DEBUG"
+      }
+    }
+  }
+}

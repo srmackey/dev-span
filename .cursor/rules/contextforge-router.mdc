@@ -1,0 +1,60 @@
+---
+description: How to use the ContextForge MCP server to load and capture engineering context. Applies to all planning and coding work; covers when to recall context and when to create/capture task context proactively.
+globs:
+alwaysApply: true
+---
+
+# ContextForge router
+
+ContextForge is a local MCP server that stores durable, cross-repo engineering
+context (Components, Repos, Tasks, Governance) as markdown, indexed in SQLite.
+This rule is a *router* — it tells you how to use the tools. It does not contain
+the knowledge itself.
+
+## Act proactively — do not wait to be asked
+Use ContextForge on your own initiative; the user should not have to say "add
+this to ContextForge" or "did you check ContextForge?". In particular:
+
+- **When the user names or starts a ticket** (anything matching `[A-Z]+-\d+`, e.g.
+  `TICKET-1234`, or phrasing like "starting/working on …"): immediately
+  `resolve_ref(query="<id or name>")` to see if a `task:` entity already exists.
+  If it does, `get_task_pack(task_slug=...)`. If it does **not**, create it now —
+  `create_task(slug="<id>", description=...)` — and `link_task` it to the current
+  repo (resolved via `get_current_workspace`). Do this before starting the work,
+  not after. Never silently create a duplicate of a task that might already exist.
+- **Recall aggressively, capture at checkpoints.** Loading context is always safe —
+  do it up front. Writing context is higher-stakes — capture durable facts when a
+  decision is reached, a workaround is found, or a unit of work wraps, not on every
+  message.
+
+## At the start of planning or coding work
+1. Call `get_current_workspace(path=<the open repo's absolute path>)`. If it
+   resolves to a repo slug, that repo is tracked here.
+2. Load context before planning — do **not** start from a blank slate:
+   - For focused/transient work, prefer a task pack:
+     `get_task_pack(task_slug=...)` (composes task + linked entities + cascaded
+     governance; `focus=True` narrows to the most relevant subtopics).
+   - Otherwise pull the specific entity/subtopic: `get_context(ref="repo:<slug>/local-dev")`,
+     `get_context(ref="component:<slug>/auth")`, etc.
+3. Only pull what the task concerns. Refs listed under `dropped` in a focused
+   pack can be fetched on demand if they turn out to be relevant — don't preload them.
+
+## When the user uses a name or nickname (not a slug)
+Call `resolve_ref(query="the gateway")` first and use the top-ranked candidate.
+Never invent a slug or silently create a new entity for a name that might
+already exist.
+
+## Live external data (Jira / Confluence / GitLab)
+ContextForge stores **pointers**, not live content:
+- `external_refs` on a task point at tickets/MRs — fetch their live state via the
+  native Jira/GitLab/Confluence MCPs when needed.
+- `import_content(ref, content, source_url)` snapshots external content into a
+  subtopic with source tracking; `refresh_source(ref)` returns the URL to re-fetch.
+
+## Capturing knowledge
+When you learn something durable that lives in no system (tribal knowledge),
+write it without being asked: `upsert_context(ref="repo:<slug>/<subtopic>", content=...)`
+or `append_context(...)`. Triggers to capture: a decision is made (record it +
+*why*), a non-obvious workaround or gotcha surfaces, an external doc is summarized
+(`import_content`), or a task wraps. Keep entity/subtopic slugs lowercase `a-z0-9-`.
+For long sessions, see the session-distill rule.

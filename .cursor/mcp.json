@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "contextforge": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/ABSOLUTE/PATH/TO/context-forge",
+        "contextforge"
+      ]
+    }
+  }
+}

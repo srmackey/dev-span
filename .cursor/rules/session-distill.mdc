@@ -1,0 +1,82 @@
+---
+description: How to distill a long work session into ContextForge so a fresh session can resume cleanly. Invoke when the user asks to distill/hand off/checkpoint the session, when context is getting bloated and work is unfinished, or before deliberately starting a new session on the same task.
+globs:
+alwaysApply: false
+---
+
+# Session distiller
+
+When a work session runs long or context gets bloated mid-task, compress it into
+ContextForge so the next session resumes without re-deriving anything. This rule
+tells you *how* to capture; it does not hold the knowledge.
+
+## 1. Identify the task
+Resolve the task slug (e.g. `proj-1234`). If unsure, ask or infer from the session.
+If no `task:` entity exists yet, create one (`create_task`) before capturing.
+
+## 2. Two outputs, two filters — do not cross-contaminate
+The hard rule. Each piece of the session goes to exactly one of:
+
+- **Session seed** — *"what do I need to resume tomorrow without losing momentum?"*
+  Transient. Includes things the durable corpus must NOT have (dead-ends, half-formed
+  plans, current hypothesis).
+- **Durable distillation** — *"would a cold agent on a future, unrelated task want this?"*
+  Permanent. Decisions + rationale, gotchas, cross-links.
+
+If a fact fails the durable test (e.g. a path you tried and ruled out), it belongs in
+the seed only — never the corpus.
+
+## 3. Be faithful and verify
+- Record only what actually happened this session. Never invent state. Flag uncertainty.
+- Before writing "done"/"fixed"/"passing", verify against ground truth — `git log`,
+  the test run, the Jira ticket — and cite `file:line`, commit SHA, or PR. Code and
+  Jira outrank prose; the next session must be able to confirm, not just trust.
+- The human's decisions and overrides are binding. Record them so the next session
+  does not relitigate settled calls.
+
+## 4. Write the session seed (overwrite each time)
+`upsert_context(ref="task:<slug>/session-state", content=...)` — overwrite, it's the
+current head, not history. Keep it short. Structure:
+
+```markdown
+**Status:** branch `<branch>`, last commit `<sha>`; <one line on overall state>
+
+## Where I am
+- Done this session: ...
+- Half-done / in progress: ...
+
+## Next step (do this first)
+1. <the single most concrete next action>
+
+## Open loops
+- Decisions not yet made; things waiting on someone/something.
+
+## Dead-ends (do NOT re-explore)
+- <path tried> — ruled out because <why>.
+
+## Working hypothesis
+- The mental model you'd lose on restart.
+
+## Verify state yourself
+- `git log --oneline -5`
+- `<test / build / run command>`
+```
+
+## 5. Append the durable distillation (never overwrite)
+- Decision trail / rationale → `append_context(ref="task:<slug>/journal", content=...)`,
+  prefixed with the date. This is the "how decisions were met" record.
+- Gotchas, workaround-vs-shipped splits → the appropriate durable subtopic
+  (`task:<slug>/notes`, `task:<slug>/implementation-notes`, or the relevant repo/component).
+- Add cross-links (`[[task:...]]`, `link_task`) to related work.
+- Omit session chatter and dead-ends here — those live in the seed only.
+
+## 6. Resuming a fresh session
+Start cold with `get_task_pack(task_slug="<slug>")`. Read `session-state` first,
+verify it against the repo/Jira, then continue from **Next step**. The `journal`
+gives the rationale if a past decision is unclear.
+
+## Current limitation
+`session-state` is meant to be transient but currently lands in the searchable corpus
+like any subtopic, so it can show up in FTS and inflate packs. Until exclusion is wired
+into pack assembly, keep it short and overwrite-only. Do not put durable facts there —
+they would be lost on the next overwrite.

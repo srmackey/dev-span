@@ -1,0 +1,22 @@
+context-forge.code-workspace
+__pycache__/
+*.py[cod]
+*.egg-info/
+.vscode/
+.venv/
+.env
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+uv.lock
+
+# Development usage/trial logs (inside the repo for easy evaluation)
+# Use .system/usage-logs/ + CONTEXTFORGE_LOG_FILE when you want logs to travel with the checkout.
+# TRIAL-log.md holds real-task rows that may reference private work — never auto-committed.
+.system/TRIAL-log.md
+.system/usage-logs/*.log
+.system/usage-logs/*.jsonl
+.system/usage-logs/*.log.*
+
