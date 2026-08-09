@@ -4,6 +4,8 @@ A local MCP server for managing engineering context across **Components**, **Rep
 
 Built for the cross-repo reality: a single task touches the UI repo + the API repo + the gateway + external service X + database Y. ContextForge lets you capture reusable context once and compose it per-task, with typed relationships and cross-cutting guidelines.
 
+**Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
+
 ## Model
 
 - **Component** — a coherent unit of functionality. Kinds: `system | service | api | database | library | tool`. Can declare a `uses` dependency graph over other components.
