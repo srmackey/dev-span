@@ -20,3 +20,8 @@ uv.lock
 .system/usage-logs/*.jsonl
 .system/usage-logs/*.log.*
 
+# Chair overlay (local). Hosts do not auto-load these.
+_status/
+inbox/
+PROTOCOL.md
+

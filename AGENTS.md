@@ -82,6 +82,15 @@ uv run contextforge            # run the stdio MCP server
 - Logging: `CONTEXTFORGE_LOG_LEVEL=DEBUG` for FTS scoring details.
 - Tests: `uv run pytest`. A storage-focused test suite now exists (see design.md Code-quality backlog for current coverage and remaining gaps).
 
+## Human-sounding output
+
+All agent output (chat, docs, commits, PR text, design notes) must read like a competent human wrote it, not like a model.
+
+- **No em-dashes (`—`) and no en-dashes used as rhetorical separators.** Prefer a period, comma, colon, parentheses, or a short new sentence. Hyphens in compound words and ISO dates are fine.
+- **No AI tells.** Skip stock model cadence ("I'd be happy to", "delve", filler "leverage", stacked "robust/comprehensive/seamless", forced three-part symmetry, decorative bold everywhere).
+- **Prose over theater.** Prefer plain sentences a colleague would write. Lists and headers structure real content; they are not default scaffolding for short answers.
+- **Match the room.** Code and tool docs stay precise and explicit; evolution advice stays measured (see Agent Perspective above).
+
 ## Code Style & Patterns
 
 - Every Python file starts with `from __future__ import annotations`.

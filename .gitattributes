@@ -1,0 +1,3 @@
+# A shell script with CRLF fails at the shebang. Keep the hook LF in the repo.
+.githooks/pre-commit text eol=lf
+
