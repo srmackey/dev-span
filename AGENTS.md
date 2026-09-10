@@ -16,7 +16,7 @@ ContextForge's purpose is to provide reusable, cross-repo engineering knowledge 
 - **Favor explicit mechanisms.** Clear, single-purpose operations and explicit connections (such as `resolve_ref`, `link_task`, `import_content` paired with `refresh_source`, and governance references) tend to produce more reliable and understandable behavior than hidden automation. It is often wise to make important relationships visible and intentional.
 - **Keep the system intentionally small until usage justifies growth.** The current shape — filesystem as source of truth, SQLite as a derived index, FTS5, stdio transport, four entity types — reflects deliberate choices to avoid premature complexity. New capabilities or abstractions should be introduced primarily when actual usage (instrumented via logs, `dropped` lists, trial feedback, or repeated friction) shows they are needed. Most promising ideas are best left for later.
 - **Design for durability and graceful degradation.** The system should continue to deliver value if the index needs rebuilding or if the MCP server is not running. Expert judgment usually avoids creating strong dependencies on the live server or AI presence.
-- **Protect development boundaries.** Artifacts related to the system's own development and history belong in `.system/`. Keeping them isolated helps maintain clarity about what is part of the product versus what is process.
+- **Protect development boundaries.** Operator method lives in `_system/` (gitignored). Public structure lives in DESIGN.md. Do not mix them.
 - **Consider dogfooding as one useful signal.** Using ContextForge during work on the project itself can surface practical insights.
 
 ### Questions for Expert Evaluation of Changes
@@ -51,7 +51,7 @@ Types: `component | repo | task | governance`. Slugs and subtopics: lowercase `a
 
 ## Critical Invariants
 
-Agents **must not** break these without strong justification and corresponding updates to tests, README, INSTRUCTIONS, and the appropriate `.system/` files (evolution.md, design.md, TRIAL.md):
+Agents **must not** break these without strong justification and corresponding updates to tests, README, DESIGN, CHANGELOG when users notice, and the `INSTRUCTIONS` string:
 
 - Markdown files are authoritative. The SQLite index can always be rebuilt with the `reindex` tool.
 - Storage opens **one SQLite connection per thread** (`threading.local()`) with `PRAGMA journal_mode=WAL` and `busy_timeout=5000`. Never cache a connection on an instance or remove the WAL pragma.
@@ -80,7 +80,7 @@ uv run contextforge            # run the stdio MCP server
 - Use `uv` (not pip or poetry).
 - For proxy issues: add `--system-certs` to uv commands or set `UV_SYSTEM_CERTS=1`.
 - Logging: `CONTEXTFORGE_LOG_LEVEL=DEBUG` for FTS scoring details.
-- Tests: `uv run pytest`. A storage-focused test suite now exists (see design.md Code-quality backlog for current coverage and remaining gaps).
+- Tests: `uv run pytest`. Storage is covered; tool and resource layers are still open.
 
 ## Human-sounding output
 
@@ -102,27 +102,19 @@ All agent output (chat, docs, commits, PR text, design notes) must read like a c
 - Destructive operations (`delete_entity`, `delete_context`) must document their cascading behavior in the docstring.
 - Do not introduce new top-level storage concepts lightly. The four-entity model + governance links + uses graph + aliases + external refs is the current shape.
 
-## .system Directory (Development Only)
+## Public docs and method overlay
 
-**The `.system/` folder is strictly for the development of ContextForge itself.**
+This is a public product. Three tracked files are the face:
 
-- It contains transient artifacts used while designing, evolving, and trialing this system:
-  - `design.md` — **current state + the single roadmap.** Snapshot of what was built vs. intent, *plus* the one place for all forward-looking items (deliberately deferred, known limitations, code-quality backlog, near-term priorities).
-  - `evolution.md` — **what changed and why.** Append-only decision history and rationale, organized by round. Does **not** hold standalone roadmap lists — forward-looking items live in design.md's roadmap; evolution records only *why* each was deferred, in the round that raised it.
-  - `TRIAL.md` — **evaluation evidence.** Trial rubric, success criteria, friction log, instrumentation notes. It *feeds* the roadmap; it references design.md rather than restating gaps.
-- These files are **not** part of the shipped product, the user-facing documentation, or the runtime behavior.
-- **Nothing else in the project may reference files inside `.system/`** (see rules below).
+- `README.md` — why it exists and how to try it
+- `DESIGN.md` — how it is structured and how it works
+- `CHANGELOG.md` — what a user notices between versions
 
-### Agent Responsibility
-When modifying the system, agents are expected to maintain the internal development record in `.system/`. This is how we keep evolution evidence-based. See the ["When Modifying the System"](#when-modifying-the-system) section for the required documentation steps.
+Operator method overlay, when this checkout has it, is `_system/` and is gitignored. A clone gets the product files above, not those papers.
 
-### Strict Rules
-- Do not import, link to, or document `.system/` contents from source code, README.md, tool descriptions, or any permanent documentation.
-- Do not add references to `.system/` files when updating the MCP contract, Cursor rules, or examples.
-- When agents need historical context, they may read the files directly during a session, but must never make them visible or durable in the rest of the codebase.
-- If you need to promote something from `.system/` into permanent docs, extract the content and place it in README.md or a new appropriate location — do not create cross-references.
+`.system/usage-logs/` is the traveling trial-log drop for dogfooding (`CONTEXTFORGE_DEV_LOG_DIR`). Log files stay gitignored. Do not put design, evolution, or trial prose there.
 
-Treat `.system/` like a scratchpad for the project's own builders. Never treat the files inside it as optional.
+Do not import or document overlay paths from source code, README, tool descriptions, or other shipped docs.
 
 ## Cursor Integration
 
@@ -135,27 +127,21 @@ Treat `.system/` like a scratchpad for the project's own builders. Never treat t
 Every change to ContextForge (new behavior, new tools, changed flows, instrumentation, configuration, or scope) must be accompanied by clear documentation. This is part of being a careful steward.
 
 1. Update the `INSTRUCTIONS` string in `server.py` for any model or flow changes. This is the canonical runtime description.
-2. Keep README.md up to date:
-   - Add or update tool descriptions, parameters, and examples.
-   - Update smoke-test steps when behavior or required sequence changes.
-   - Document any new environment variables, file locations (e.g. logs), or usage patterns.
+2. Keep public docs true:
+   - README: install, the one-liner, the lead. Not a man page.
+   - DESIGN: rewrite when the public picture of the system changed. Do not append history.
+   - CHANGELOG: a user-visible line under Unreleased when someone using the product would notice.
 3. Consider ripple effects on core concepts: governance cascade, focus-mode narrowing + `dropped`, alias resolution, ref grammar, task pack assembly, and usage instrumentation.
 4. Run `uv run contextforge` and execute the smoke-test sequence from the README after any significant change.
-5. **Document the change in the appropriate `.system/` files** (this is mandatory for any real evolution):
-   - Append a clear, dated entry to `evolution.md` (the append-only decision log). Include what was changed, alternatives considered, rationale, and alignment with the principles above. Do **not** start standalone "future work" lists here — put forward-looking items in the design.md roadmap and keep only the *why* in the round.
-   - Refresh `design.md` (the full current-state description, code-quality backlog, and `## Roadmap`) when the picture of what has been built vs. what is still needed changes, when key decisions are made, or when the "current state vs. original prompt" picture shifts. Update the Roadmap section whenever an item is deferred, completed, or re-prioritized. The code-quality backlog must be kept accurate for things like test coverage, transaction safety, etc.
-   - Update `TRIAL.md` whenever the change affects how the system is evaluated, instrumented, or trialed (new signals such as logs, new `dropped` behavior, new governance or focus mechanics, etc.).
-   See the dedicated [`.system/ Directory`](#system-directory-development-only) section for the purpose and strict rules around these files.
+5. If this checkout has `_system/`, record method there: evolution when thinking shifted, method changelog when shape changed, notes for forward-looking items, trial files when evaluation changed. A clone without that overlay still owes the public docs in step 2.
 6. Never silently create duplicate entities. Prefer `resolve_ref` when the user supplies a name instead of a slug.
 
 ## Scope of Changes
 
 - Prefer minimal, targeted changes that preserve the current architecture.
-- Deferred items (vector search via sqlite-vec, HTTP/SSE, rich UI, etc.) live in the `design.md` → `## Roadmap`. Do not implement them without:
-  - Moving the item out of the roadmap's "Deliberately deferred" list in `design.md` (to current-state / done)
-  - Recording the decision and rationale in `evolution.md`
-- The project deliberately uses filesystem-as-truth + SQLite index for git-friendliness and simplicity. Do not introduce new persistent stores without strong justification and the corresponding updates to `.system/` documentation + README.
-- Any addition of instrumentation (new logs, new signals for `dropped`/focus/governance, etc.) must update both the implementation docs in `.system/` (especially `TRIAL.md` and `evolution.md`) and the public README.
+- Deferred capabilities are stated as current outs in DESIGN.md. Do not implement one without rewriting DESIGN so the out is no longer true.
+- The project uses filesystem-as-truth + SQLite index. Do not introduce a new persistent store without updating DESIGN, and CHANGELOG if users notice.
+- New instrumentation updates the public README when operators have to set something.
 
 ## License & Dependencies
 
@@ -163,8 +149,4 @@ Every change to ContextForge (new behavior, new tools, changed flows, instrument
 - Runtime dependencies must remain permissive (MIT/BSD/Apache-2.0). No copyleft.
 - Current core stack: `fastmcp>=2.0.0`, `pydantic>=2.5`, `python-frontmatter>=1.0`.
 
-When in doubt:
-- Re-read the model sections in the README and the key decisions + current state in `design.md` (treating the latter as internal development notes only).
-- Review recent entries in `evolution.md` for context on why things are the way they are.
-- Check `TRIAL.md` to understand what signals and evaluation criteria currently matter.
-Ask clarifying questions rather than guessing invariants or skipping documentation updates.
+When in doubt, re-read DESIGN.md and the `INSTRUCTIONS` string in `server.py`. Ask rather than guessing invariants or skipping documentation.

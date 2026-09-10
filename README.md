@@ -6,6 +6,8 @@ Built for the cross-repo reality: a single task touches the UI repo + the API re
 
 **Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
 
+Structure: [DESIGN.md](DESIGN.md). What moved: [CHANGELOG.md](CHANGELOG.md).
+
 ## Model
 
 - **Component** — a coherent unit of functionality. Kinds: `system | service | api | database | library | tool`. Can declare a `uses` dependency graph over other components.

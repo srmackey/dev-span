@@ -7,7 +7,7 @@ This directory is for capturing ContextForge usage logs **inside the source repo
 The normal logs live at `~/.contextforge/logs/contextforge.log` (or `$CONTEXTFORGE_HOME`).
 Those do not travel with the git checkout.
 
-For evaluating the system (TRIAL.md, design decisions around focus-mode, governance cascade, linking patterns, etc.) it is useful to have the raw event stream live inside this repo so it can be:
+For evaluating the system it is useful to have the raw event stream live inside this repo so it can be:
 
 - Inspected after working "at home" or on another machine
 - Committed (selectively) as evidence
@@ -78,4 +78,4 @@ Feel free to delete old log files in this directory. They are purely development
 
 ---
 
-This setup was added in Round 9 (see evolution.md).
+This setup was added so trial runs can travel with the checkout.
