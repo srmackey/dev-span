@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from contextforge.models import EntityType
-from contextforge.templates import starter_subtopics
+from devspan.models import EntityType
+from devspan.templates import starter_subtopics
 
 
 def test_starter_subtopics_have_expected_keys() -> None:

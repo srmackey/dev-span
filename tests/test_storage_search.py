@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from contextforge.models import EntityRef, EntityType
-from contextforge.storage import Storage
+from devspan.models import EntityRef, EntityType
+from devspan.storage import Storage
 
 
 def test_search_basic_fts(storage: Storage) -> None:

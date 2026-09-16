@@ -1,14 +1,14 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents (Cursor, Claude Code, Grok Build, etc.) when working on the ContextForge codebase.
+This file provides guidance to AI coding agents (Cursor, Claude Code, Grok Build, etc.) when working on the DevSpan codebase.
 
 ## Agent Perspective
 
-When working on or evolving ContextForge, bring an expert, collaborative perspective:
+When working on or evolving DevSpan, bring an expert, collaborative perspective:
 
 **You serve as a careful steward and expert advisor for a lightweight, durable, git-native context substrate.**
 
-ContextForge's purpose is to provide reusable, cross-repo engineering knowledge in a form that remains valuable primarily through ordinary markdown files — even without AI assistance. The role is to offer high-quality guidance that strengthens this foundation thoughtfully, introducing change primarily when real usage demonstrates the need.
+DevSpan's purpose is to provide reusable, cross-repo engineering knowledge in a form that remains valuable primarily through ordinary markdown files — even without AI assistance. The role is to offer high-quality guidance that strengthens this foundation thoughtfully, introducing change primarily when real usage demonstrates the need.
 
 ### Principles for Careful Evolution
 
@@ -17,7 +17,7 @@ ContextForge's purpose is to provide reusable, cross-repo engineering knowledge 
 - **Keep the system intentionally small until usage justifies growth.** The current shape — filesystem as source of truth, SQLite as a derived index, FTS5, stdio transport, four entity types — reflects deliberate choices to avoid premature complexity. New capabilities or abstractions should be introduced primarily when actual usage (instrumented via logs, `dropped` lists, trial feedback, or repeated friction) shows they are needed. Most promising ideas are best left for later.
 - **Design for durability and graceful degradation.** The system should continue to deliver value if the index needs rebuilding or if the MCP server is not running. Expert judgment usually avoids creating strong dependencies on the live server or AI presence.
 - **Protect development boundaries.** Operator method lives in `_system/` (gitignored). Public structure lives in DESIGN.md. Do not mix them.
-- **Consider dogfooding as one useful signal.** Using ContextForge during work on the project itself can surface practical insights.
+- **Consider dogfooding as one useful signal.** Using DevSpan during work on the project itself can surface practical insights.
 
 ### Questions for Expert Evaluation of Changes
 
@@ -29,11 +29,11 @@ When advising on whether (and how) to evolve the system, strong practice include
 - If AI tooling were not available, would the change still improve the underlying system?
 - Has the problem this addresses been observed repeatedly in real usage, or is the driver primarily anticipation of future needs?
 
-The healthiest path for this system is usually steady, evidence-based evolution: stay stable and dependable until usage data clearly indicates where the next careful improvement should land. Expert advice on ContextForge prioritizes protecting what already works while remaining open to measured change when friction in practice makes the case.
+The healthiest path for this system is usually steady, evidence-based evolution: stay stable and dependable until usage data clearly indicates where the next careful improvement should land. Expert advice on DevSpan prioritizes protecting what already works while remaining open to measured change when friction in practice makes the case.
 
 ## Project Overview
 
-ContextForge is a local MCP server for managing durable, cross-repo engineering context.
+DevSpan is a local MCP server for managing durable, cross-repo engineering context.
 
 It models four peer entity types:
 - **Component**: coherent unit of functionality (`system | service | api | database | library | tool`). Can declare a `uses` dependency graph.
@@ -41,7 +41,7 @@ It models four peer entity types:
 - **Task**: transient unit of work that links entities and composes a context pack.
 - **Governance**: reusable cross-cutting guidelines that cascade into task packs.
 
-All persistent data lives under `~/.contextforge/` (override via `CONTEXTFORGE_HOME`). Markdown files on disk are the source of truth. SQLite + FTS5 is a derived, rebuildable index.
+All persistent data lives under `~/.devspan/` (override via `DEVSPAN_HOME`). Markdown files on disk are the source of truth. SQLite + FTS5 is a derived, rebuildable index.
 
 **Ref grammar (strict):**
 - `type:slug` — whole entity
@@ -62,24 +62,24 @@ Agents **must not** break these without strong justification and corresponding u
   4. Parent component of each linked repo
   5. `config.always_include` entries
 - Aliases are globally unique across all entity types.
-- `import_content` stores snapshots only. ContextForge does not fetch external content itself.
+- `import_content` stores snapshots only. DevSpan does not fetch external content itself.
 - External refs (`external_refs`) are pointers only — live data comes from other MCPs.
 - `get_task_pack` with `focus=True` (default) may return a `dropped` list. Agents must not ignore `dropped` when it appears.
 - `suggest_task_links` uses the `uses` graph + FTS; explicit `link_task` is still required.
 
-The canonical description of the current model lives in the `INSTRUCTIONS` string in `src/contextforge/server.py`. Keep it in sync with behavior.
+The canonical description of the current model lives in the `INSTRUCTIONS` string in `src/devspan/server.py`. Keep it in sync with behavior.
 
 ## Development Commands
 
 ```bash
-cd /path/to/context-forge
+cd /path/to/dev-span
 uv sync
-uv run contextforge            # run the stdio MCP server
+uv run devspan            # run the stdio MCP server
 ```
 
 - Use `uv` (not pip or poetry).
 - For proxy issues: add `--system-certs` to uv commands or set `UV_SYSTEM_CERTS=1`.
-- Logging: `CONTEXTFORGE_LOG_LEVEL=DEBUG` for FTS scoring details.
+- Logging: `DEVSPAN_LOG_LEVEL=DEBUG` for FTS scoring details.
 - Tests: `uv run pytest`. Storage is covered; tool and resource layers are still open.
 
 ## Human-sounding output
@@ -112,19 +112,19 @@ This is a public product. Three tracked files are the face:
 
 Operator method overlay, when this checkout has it, is `_system/` and is gitignored. A clone gets the product files above, not those papers.
 
-`.system/usage-logs/` is the traveling trial-log drop for dogfooding (`CONTEXTFORGE_DEV_LOG_DIR`). Log files stay gitignored. Do not put design, evolution, or trial prose there.
+`.system/usage-logs/` is the traveling trial-log drop for dogfooding (`DEVSPAN_DEV_LOG_DIR`). Log files stay gitignored. Do not put design, evolution, or trial prose there.
 
 Do not import or document overlay paths from source code, README, tool descriptions, or other shipped docs.
 
 ## Cursor Integration
 
 - The project includes a project-scoped `.cursor/mcp.json` (users must fill in their absolute path).
-- `.cursor/rules/contextforge-router.mdc` is a **router rule for consumers** of ContextForge. It tells agents in *other* projects how and when to call the tools. It is not the development constitution for this repo.
+- `.cursor/rules/devspan-router.mdc` is a **router rule for consumers** of DevSpan. It tells agents in *other* projects how and when to call the tools. It is not the development constitution for this repo.
 - Keep the router rule focused on usage patterns; do not mix in internal development guidelines.
 
 ## When Modifying the System
 
-Every change to ContextForge (new behavior, new tools, changed flows, instrumentation, configuration, or scope) must be accompanied by clear documentation. This is part of being a careful steward.
+Every change to DevSpan (new behavior, new tools, changed flows, instrumentation, configuration, or scope) must be accompanied by clear documentation. This is part of being a careful steward.
 
 1. Update the `INSTRUCTIONS` string in `server.py` for any model or flow changes. This is the canonical runtime description.
 2. Keep public docs true:
@@ -132,7 +132,7 @@ Every change to ContextForge (new behavior, new tools, changed flows, instrument
    - DESIGN: rewrite when the public picture of the system changed. Do not append history.
    - CHANGELOG: a user-visible line under Unreleased when someone using the product would notice.
 3. Consider ripple effects on core concepts: governance cascade, focus-mode narrowing + `dropped`, alias resolution, ref grammar, task pack assembly, and usage instrumentation.
-4. Run `uv run contextforge` and execute the smoke-test sequence from the README after any significant change.
+4. Run `uv run devspan` and execute the smoke-test sequence from the README after any significant change.
 5. If this checkout has `_system/`, record method there: evolution when thinking shifted, method changelog when shape changed, notes for forward-looking items, trial files when evaluation changed. A clone without that overlay still owes the public docs in step 2.
 6. Never silently create duplicate entities. Prefer `resolve_ref` when the user supplies a name instead of a slug.
 

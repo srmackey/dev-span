@@ -12,7 +12,7 @@ from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
 
-logger = logging.getLogger("contextforge.storage")
+logger = logging.getLogger("devspan.storage")
 
 import frontmatter
 
@@ -105,10 +105,10 @@ def _now() -> str:
 
 
 def default_home() -> Path:
-    override = os.environ.get("CONTEXTFORGE_HOME")
+    override = os.environ.get("DEVSPAN_HOME")
     if override:
         return Path(override).expanduser()
-    return Path.home() / ".contextforge"
+    return Path.home() / ".devspan"
 
 
 def _fts_phrase(query: str) -> str:
@@ -141,7 +141,7 @@ def _attach_rotating_file_handler(path: Path, level: int = logging.INFO) -> None
     Used for both the standard home-based log and any additional dev / repo-local
     logs specified via environment variables.
     """
-    root_logger = logging.getLogger("contextforge")
+    root_logger = logging.getLogger("devspan")
     resolved = path.resolve()
     for h in list(root_logger.handlers):
         if isinstance(h, logging.handlers.RotatingFileHandler):
@@ -165,12 +165,12 @@ def _attach_rotating_file_handler(path: Path, level: int = logging.INFO) -> None
 
 
 def _ensure_persistent_log_handler(root: Path) -> None:
-    """Attach the standard rotating log under the ContextForge home directory.
+    """Attach the standard rotating log under the DevSpan home directory.
 
-    Writes to <root>/logs/contextforge.log. This is the normal user-facing
+    Writes to <root>/logs/devspan.log. This is the normal user-facing
     persistent log. Additional locations can be added via setup_extra_logging().
     """
-    log_path = root / "logs" / "contextforge.log"
+    log_path = root / "logs" / "devspan.log"
     _attach_rotating_file_handler(log_path)
 
 
@@ -181,27 +181,27 @@ def setup_extra_logging() -> None:
     development and trials without changing the normal user data location.
 
     Supported variables:
-      CONTEXTFORGE_LOG_FILE     Full path to an additional log file.
-      CONTEXTFORGE_DEV_LOG_DIR  Directory; "contextforge.log" will be created inside it.
+      DEVSPAN_LOG_FILE     Full path to an additional log file.
+      DEVSPAN_DEV_LOG_DIR  Directory; "devspan.log" will be created inside it.
 
       Example (for this repo's dev logs so they travel with the checkout):
-        CONTEXTFORGE_DEV_LOG_DIR=/path/to/context-forge/.system/usage-logs
+        DEVSPAN_DEV_LOG_DIR=/path/to/dev-span/.system/usage-logs
         # or
-        CONTEXTFORGE_LOG_FILE=/path/to/context-forge/.system/usage-logs/contextforge.log
+        DEVSPAN_LOG_FILE=/path/to/dev-span/.system/usage-logs/devspan.log
 
     When set, the same structured events are written to both the normal home log
     (if any) *and* the extra location(s). Safe to use for "both places for a while".
 
     Call is idempotent and harmless if the variable is unset.
     """
-    extra_file = os.environ.get("CONTEXTFORGE_LOG_FILE")
+    extra_file = os.environ.get("DEVSPAN_LOG_FILE")
     if extra_file:
         _attach_rotating_file_handler(Path(extra_file))
 
     # Alternative convenience for dev: point at a directory
-    extra_dir = os.environ.get("CONTEXTFORGE_DEV_LOG_DIR")
+    extra_dir = os.environ.get("DEVSPAN_DEV_LOG_DIR")
     if extra_dir:
-        _attach_rotating_file_handler(Path(extra_dir) / "contextforge.log")
+        _attach_rotating_file_handler(Path(extra_dir) / "devspan.log")
 
 
 def _dir_for(type_: EntityType) -> str:
@@ -220,7 +220,7 @@ class Storage:
         self._init_dirs()
         _ensure_persistent_log_handler(self.root)
         setup_extra_logging()
-        self.db_path = self.root / ".index" / "contextforge.db"
+        self.db_path = self.root / ".index" / "devspan.db"
         self._local = threading.local()
         # Apply schema on the creating thread (main thread at server import time).
         # The CREATE ... IF NOT EXISTS statements are idempotent, so per-thread
@@ -1124,7 +1124,7 @@ class Storage:
         Useful for inspecting real usage during trials without leaving the MCP
         environment. Returns [] if no log file exists yet.
         """
-        log_path = self.root / "logs" / "contextforge.log"
+        log_path = self.root / "logs" / "devspan.log"
         if not log_path.exists():
             return []
         try:

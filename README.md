@@ -1,8 +1,8 @@
-# ContextForge
+# DevSpan
 
 A local MCP server for managing engineering context across **Components**, **Repos**, **Tasks**, and **Governance** entities.
 
-Built for the cross-repo reality: a single task touches the UI repo + the API repo + the gateway + external service X + database Y. ContextForge lets you capture reusable context once and compose it per-task, with typed relationships and cross-cutting guidelines.
+Built for the cross-repo reality: a single task touches the UI repo + the API repo + the gateway + external service X + database Y. DevSpan lets you capture reusable context once and compose it per-task, with typed relationships and cross-cutting guidelines.
 
 **Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
 
@@ -21,17 +21,17 @@ Examples: `component:api-gateway`, `component:api-gateway/auth`, `repo:ui-repo/t
 
 ## Storage
 
-All data lives under `~/.contextforge/` (override with `CONTEXTFORGE_HOME`):
+All data lives under `~/.devspan/` (override with `DEVSPAN_HOME`):
 
 ```
-~/.contextforge/
+~/.devspan/
   components/{slug}/_meta.md, {subtopic}.md
   repos/{slug}/_meta.md, {subtopic}.md
   tasks/{slug}/_meta.md, {subtopic}.md
   governance/{slug}/_meta.md, {subtopic}.md
-  .index/contextforge.db       # SQLite + FTS5, rebuildable via `reindex`
+  .index/devspan.db       # SQLite + FTS5, rebuildable via `reindex`
   config.json                  # always_include refs + workspace bindings
-  logs/contextforge.log        # persistent usage + debug (rotating)
+  logs/devspan.log        # persistent usage + debug (rotating)
 ```
 
 Markdown files are the source of truth. The SQLite index is derived — if it drifts, call `reindex`.
@@ -51,9 +51,9 @@ Delete the ones you don't want.
 [`uv`](https://docs.astral.sh/uv/) is the expected package manager (install via `brew install uv` or Astral's installer).
 
 ```bash
-cd /path/to/context-forge
+cd /path/to/dev-span
 uv sync
-uv run contextforge            # stdio MCP server
+uv run devspan            # stdio MCP server
 ```
 
 Tests (pytest is a dev dependency):
@@ -65,25 +65,25 @@ uv run pytest
 
 > Behind an SSL-inspecting proxy? If `uv sync` fails with `invalid peer certificate: UnknownIssuer`, add `--system-certs` to the `uv` commands (or `export UV_SYSTEM_CERTS=1`).
 
-Logs go to stderr **and** to `~/.contextforge/logs/contextforge.log` (rotating text file, on by default). The file is the durable record for usage analysis and trials.
+Logs go to stderr **and** to `~/.devspan/logs/devspan.log` (rotating text file, on by default). The file is the durable record for usage analysis and trials.
 
-Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `CONTEXTFORGE_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity — useful for tuning `per_entity_top_k` and `min_score`.
+Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `DEVSPAN_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity — useful for tuning `per_entity_top_k` and `min_score`.
 
 Use the `tail_logs(n)` tool to inspect recent activity from inside the MCP.
 
 For development / dogfooding where you want the same events written to a second location (e.g. inside the source repo so logs travel with the checkout), set:
-- `CONTEXTFORGE_DEV_LOG_DIR=/path/to/desired/dir`   (recommended), or
-- `CONTEXTFORGE_LOG_FILE=/path/to/specific.log`
+- `DEVSPAN_DEV_LOG_DIR=/path/to/desired/dir`   (recommended), or
+- `DEVSPAN_LOG_FILE=/path/to/specific.log`
 
 You get both the normal home log *and* the extra location.
 
 ## Wire into Cursor
 
-**Install it globally, not per-project.** ContextForge is a single global store
-(`~/.contextforge/`) meant to serve *every* repo you work in. The `--directory`
+**Install it globally, not per-project.** DevSpan is a single global store
+(`~/.devspan/`) meant to serve *every* repo you work in. The `--directory`
 below only tells `uv` where this server's *code* lives — the running server reads
-`~/.contextforge/` regardless of which workspace is open, so **you never need to add
-the context-forge folder to your other repos.** Wire it once, globally, and it's
+`~/.devspan/` regardless of which workspace is open, so **you never need to add
+the dev-span folder to your other repos.** Wire it once, globally, and it's
 available everywhere.
 
 ### 1. Register the MCP server globally
@@ -95,9 +95,9 @@ repo's path on your machine:
 ```json
 {
   "mcpServers": {
-    "contextforge": {
+    "devspan": {
       "command": "uv",
-      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/context-forge", "contextforge"]
+      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/dev-span", "devspan"]
     }
   }
 }
@@ -105,16 +105,16 @@ repo's path on your machine:
 
 Behind an SSL-inspecting proxy, add `"--system-certs"` as the first entry in `args`,
 or set `UV_SYSTEM_CERTS=1` on the server's `env`. Restart Cursor (or toggle the
-server under **Settings → MCP**) and confirm the `contextforge` tools appear.
+server under **Settings → MCP**) and confirm the `devspan` tools appear.
 
 > A project-scoped [.cursor/mcp.json](.cursor/mcp.json) is also committed in this
 > repo, but it only activates when *this* repo is the open workspace — fine for
-> hacking on ContextForge itself, not for using it across your work.
+> hacking on DevSpan itself, not for using it across your work.
 
 ### 2. Make the router rule global too
 
 The MCP registration gives the agent the *tools*; the
-[.cursor/rules/contextforge-router.mdc](.cursor/rules/contextforge-router.mdc) rule
+[.cursor/rules/devspan-router.mdc](.cursor/rules/devspan-router.mdc) rule
 gives it the *behavior* (when to recall and capture context proactively). A rule
 that lives only in this repo won't apply in your other repos — so it must be global
 as well. Two equivalent options:
@@ -126,7 +126,7 @@ as well. Two equivalent options:
   after edits).
 
 Either way the rule is `alwaysApply: true`, so once it's global it's in context for
-every session — that's what lets the agent use ContextForge without being told to.
+every session — that's what lets the agent use DevSpan without being told to.
 
 ## Tools
 

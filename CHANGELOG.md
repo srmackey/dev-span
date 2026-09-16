@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ContextForge are documented here.
+All notable changes to DevSpan are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Renamed the product from ContextForge to DevSpan. Package, CLI, and MCP id are `devspan`. Store is `~/.devspan/` (override `DEVSPAN_HOME`). GitHub: [srmackey/dev-span](https://github.com/srmackey/dev-span).
 - Public docs now follow the product triple: [DESIGN.md](DESIGN.md) is the structure, this file is what moved, [README.md](README.md) is the draw. Contributor method files live under `_system/` and are not shipped.
 
 ## [0.1.0] - 2026-07-17

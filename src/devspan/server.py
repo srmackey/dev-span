@@ -16,24 +16,24 @@ def _setup_logging() -> None:
     """Configure stderr logging for the MCP server (stdout is reserved for protocol).
 
     Persistent file logging (rotating text):
-    - Always: <CONTEXTFORGE_HOME>/logs/contextforge.log (via Storage)
-    - Optional extra: via CONTEXTFORGE_LOG_FILE or CONTEXTFORGE_DEV_LOG_DIR
+    - Always: <DEVSPAN_HOME>/logs/devspan.log (via Storage)
+    - Optional extra: via DEVSPAN_LOG_FILE or DEVSPAN_DEV_LOG_DIR
       (see setup_extra_logging in storage.py).
 
     The extra mechanism lets you write the same events to a second location
     (e.g. inside this repo under .system/usage-logs/) so logs travel with the
     checkout for evaluation. You get *both* locations when the var is set.
 
-    Control verbosity with CONTEXTFORGE_LOG_LEVEL=DEBUG (affects stderr + all files).
+    Control verbosity with DEVSPAN_LOG_LEVEL=DEBUG (affects stderr + all files).
     """
-    level_name = os.environ.get("CONTEXTFORGE_LOG_LEVEL", "INFO").upper()
+    level_name = os.environ.get("DEVSPAN_LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
         logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
     )
-    logging.getLogger("contextforge").setLevel(level)
-    logging.getLogger("contextforge").addHandler(handler)
+    logging.getLogger("devspan").setLevel(level)
+    logging.getLogger("devspan").addHandler(handler)
 
     # Support repo-local / extra dev logs early (before Storage is created).
     # This is how you make usage data travel with the source repo.
@@ -41,7 +41,7 @@ def _setup_logging() -> None:
     setup_extra_logging()
 
 INSTRUCTIONS = """\
-ContextForge: local context management for cross-repo engineering work.
+DevSpan: local context management for cross-repo engineering work.
 
 Entity types:
 - Component: a coherent unit of functionality (system/service/api/database/library/tool).
@@ -60,20 +60,20 @@ Ref grammar:
 
 Types: component | repo | task | governance. Slugs/subtopics: lowercase a-z0-9-.
 
-Data lives under ~/.contextforge/ (override with CONTEXTFORGE_HOME). Markdown files
+Data lives under ~/.devspan/ (override with DEVSPAN_HOME). Markdown files
 on disk are the source of truth; SQLite+FTS5 is a derived index. The `reindex` tool
 rebuilds it from disk.
 
-Config at ~/.contextforge/config.json holds `always_include` refs (auto-merged into
+Config at ~/.devspan/config.json holds `always_include` refs (auto-merged into
 every task pack) and workspace->repo bindings.
 
-Logs (for usage analysis): ~/.contextforge/logs/contextforge.log (rotating text file).
+Logs (for usage analysis): ~/.devspan/logs/devspan.log (rotating text file).
 Key events include pack assembly (with dropped/focus details), creates, links,
 governance cascade attachments, resolves, suggestions, and writes. Use `tail_logs`
-tool or external tail to inspect. Set CONTEXTFORGE_LOG_LEVEL=DEBUG for FTS scores.
+tool or external tail to inspect. Set DEVSPAN_LOG_LEVEL=DEBUG for FTS scores.
 
-Additional dev location: set CONTEXTFORGE_DEV_LOG_DIR (a directory) or
-CONTEXTFORGE_LOG_FILE (exact file) to write the same events to a second rotating file.
+Additional dev location: set DEVSPAN_DEV_LOG_DIR (a directory) or
+DEVSPAN_LOG_FILE (exact file) to write the same events to a second rotating file.
 This is how repo-local logs are produced so they travel with the checkout.
 
 Key flows:
@@ -82,12 +82,12 @@ Key flows:
 - Use suggest_task_links to propose refs based on a task's description + the
   `uses` graph (default depth 3).
 - Use import_content + refresh_source for content fetched from external MCPs
-  (Atlassian/Confluence, GitHub, etc.) — ContextForge stores the snapshot and
+  (Atlassian/Confluence, GitHub, etc.) — DevSpan stores the snapshot and
   tracks source_url/source_fetched_at. Refreshing is the caller's job.
 """
 
 _setup_logging()
-mcp = FastMCP("ContextForge", instructions=INSTRUCTIONS)
+mcp = FastMCP("DevSpan", instructions=INSTRUCTIONS)
 _storage = Storage()
 _tools.register(mcp, _storage)
 _resources.register(mcp, _storage)

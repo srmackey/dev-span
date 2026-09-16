@@ -1,5 +1,5 @@
 ---
-description: How to distill a long work session into ContextForge so a fresh session can resume cleanly. Invoke when the user asks to distill/hand off/checkpoint the session, when context is getting bloated and work is unfinished, or before deliberately starting a new session on the same task.
+description: How to distill a long work session into DevSpan so a fresh session can resume cleanly. Invoke when the user asks to distill/hand off/checkpoint the session, when context is getting bloated and work is unfinished, or before deliberately starting a new session on the same task.
 globs:
 alwaysApply: false
 ---
@@ -7,7 +7,7 @@ alwaysApply: false
 # Session distiller
 
 When a work session runs long or context gets bloated mid-task, compress it into
-ContextForge so the next session resumes without re-deriving anything. This rule
+DevSpan so the next session resumes without re-deriving anything. This rule
 tells you *how* to capture; it does not hold the knowledge.
 
 ## 1. Identify the task

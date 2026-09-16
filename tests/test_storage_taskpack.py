@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.models import EntityRef, EntityType
-from contextforge.storage import Storage
+from devspan.models import EntityRef, EntityType
+from devspan.storage import Storage
 
 
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.models import EntityType
-from contextforge.storage import Storage
+from devspan.models import EntityType
+from devspan.storage import Storage
 
 
 def test_alias_add_resolve_remove(storage: Storage) -> None:

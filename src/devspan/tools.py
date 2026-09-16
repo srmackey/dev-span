@@ -14,7 +14,7 @@ def _now() -> str:
 
 
 def register(mcp: Any, storage: Storage) -> None:
-    """Attach all ContextForge tools to the given FastMCP instance."""
+    """Attach all DevSpan tools to the given FastMCP instance."""
 
     # ---------- entity creation ----------
 
@@ -332,7 +332,7 @@ def register(mcp: Any, storage: Storage) -> None:
         """Store content fetched from an external source as a subtopic.
 
         Use this after another MCP tool (e.g. an Atlassian MCP for Confluence)
-        returns page content — ContextForge then owns it as a snapshot with
+        returns page content — DevSpan then owns it as a snapshot with
         source tracking. `source_fetched_at` is set to now automatically.
 
         Args:
@@ -365,7 +365,7 @@ def register(mcp: Any, storage: Storage) -> None:
     def refresh_source(ref: str) -> dict:
         """Return the source_url for a subtopic so the caller can re-fetch.
 
-        ContextForge does NOT fetch. The caller (LLM) uses another MCP tool or
+        DevSpan does NOT fetch. The caller (LLM) uses another MCP tool or
         HTTP fetcher to retrieve fresh content, then calls import_content again
         with the same ref.
         """
@@ -521,7 +521,7 @@ def register(mcp: Any, storage: Storage) -> None:
     ) -> list[dict]:
         """Attach a reference to an external tracking system (Jira, GitHub, etc.).
 
-        ContextForge does not fetch these — it just stores pointers. Use a
+        DevSpan does not fetch these — it just stores pointers. Use a
         separate MCP server (Atlassian, GitHub, etc.) to retrieve current state.
 
         Args:
@@ -559,7 +559,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     @mcp.tool
     def get_config() -> dict:
-        """Return the current ContextForge config (always_include, workspaces)."""
+        """Return the current DevSpan config (always_include, workspaces)."""
         return storage.config.as_dict()
 
     @mcp.tool
@@ -607,7 +607,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
         Args:
             path: absolute path to check. The MCP client supplies this from its
-                Roots; ContextForge does not read Roots directly in v0.
+                Roots; DevSpan does not read Roots directly in v0.
         """
         repo_slug = storage.config.lookup_workspace(path)
         if not repo_slug:
@@ -634,7 +634,7 @@ def register(mcp: Any, storage: Storage) -> None:
     def tail_logs(n: int = 50) -> list[str]:
         """Return the most recent lines from the persistent usage/debug log.
 
-        The log at ~/.contextforge/logs/contextforge.log (rotating) captures
+        The log at ~/.devspan/logs/devspan.log (rotating) captures
         tool invocations, pack assemblies (with dropped counts, sizes, timings),
         entity creates, links, governance attachments, resolves, suggestions,
         context writes, and workspace binds. This is the primary signal for

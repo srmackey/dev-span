@@ -1,6 +1,6 @@
 <!-- Shim. Canonical constitution is AGENTS.md. Claude Code loads this file and expands @AGENTS.md. -->
 
-# CLAUDE.md — ContextForge
+# CLAUDE.md — DevSpan
 
 @AGENTS.md
 

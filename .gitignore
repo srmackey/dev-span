@@ -1,4 +1,4 @@
-context-forge.code-workspace
+dev-span.code-workspace
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -13,7 +13,7 @@ build/
 uv.lock
 
 # Development usage/trial logs (inside the repo for easy evaluation)
-# Use .system/usage-logs/ + CONTEXTFORGE_LOG_FILE when you want logs to travel with the checkout.
+# Use .system/usage-logs/ + DEVSPAN_LOG_FILE when you want logs to travel with the checkout.
 # TRIAL-log.md holds real-task rows that may reference private work — never auto-committed.
 .system/TRIAL-log.md
 .system/usage-logs/*.log

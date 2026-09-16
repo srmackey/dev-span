@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "contextforge"
+name = "devspan"
 version = "0.1.0"
 description = "MCP server for Systems/Repos/Tasks context management"
 readme = "README.md"
@@ -22,10 +22,10 @@ dev = [
 ]
 
 [project.scripts]
-contextforge = "contextforge.server:main"
+devspan = "devspan.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/contextforge"]
+packages = ["src/devspan"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

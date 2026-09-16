@@ -1,12 +1,12 @@
 {
   "mcpServers": {
-    "contextforge": {
+    "devspan": {
       "command": "uv",
       "args": [
         "run",
         "--directory",
-        "/ABSOLUTE/PATH/TO/context-forge",
-        "contextforge"
+        "/ABSOLUTE/PATH/TO/dev-span",
+        "devspan"
       ]
     }
   }

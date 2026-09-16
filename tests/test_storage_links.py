@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.models import EntityRef, EntityType, ExternalRef
-from contextforge.storage import Storage
+from devspan.models import EntityRef, EntityType, ExternalRef
+from devspan.storage import Storage
 
 
 def test_link_unlink_and_meta_sync(storage: Storage) -> None:

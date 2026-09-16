@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.models import EntityRef, EntityType
-from contextforge.refs import parse_ref
-from contextforge.storage import Storage
+from devspan.models import EntityRef, EntityType
+from devspan.refs import parse_ref
+from devspan.storage import Storage
 
 
 def test_upsert_get_delete_subtopic(storage: Storage) -> None:

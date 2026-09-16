@@ -1,12 +1,12 @@
-# ContextForge — Design
+# DevSpan — Design
 
-A local MCP server for durable, cross-repo engineering context. Markdown files are the source of truth. SQLite + FTS5 is a derived index. The store lives under `~/.contextforge/` (override with `CONTEXTFORGE_HOME`).
+A local MCP server for durable, cross-repo engineering context. Markdown files are the source of truth. SQLite + FTS5 is a derived index. The store lives under `~/.devspan/` (override with `DEVSPAN_HOME`).
 
 This file is the public picture of how the system is structured. Install and try-it steps are in [README.md](README.md). What moved between versions is in [CHANGELOG.md](CHANGELOG.md). Contributor rules are in [AGENTS.md](AGENTS.md).
 
 ## What it is for
 
-A single task often spans several codebases plus services you do not own. ContextForge captures reusable facts once (how the gateway authenticates, how the UI repo tests, the company security policy) and composes a pack for the task at hand.
+A single task often spans several codebases plus services you do not own. DevSpan captures reusable facts once (how the gateway authenticates, how the UI repo tests, the company security policy) and composes a pack for the task at hand.
 
 It is not a wiki product, not a team sync service, and not a memory extractor. If the index is rebuilt or the MCP server is down, the markdown files still work.
 
@@ -35,14 +35,14 @@ Aliases are globally unique across types. `resolve_ref` fuzzy-matches slugs, ali
 ## Storage
 
 ```
-~/.contextforge/
+~/.devspan/
   components/{slug}/_meta.md, {subtopic}.md
   repos/{slug}/_meta.md, {subtopic}.md
   tasks/{slug}/_meta.md, {subtopic}.md
   governance/{slug}/_meta.md, {subtopic}.md
-  .index/contextforge.db
+  .index/devspan.db
   config.json
-  logs/contextforge.log
+  logs/devspan.log
 ```
 
 Markdown is authoritative. `reindex` rebuilds SQLite. One SQLite connection per thread, WAL mode. Do not cache a connection on the storage instance.
@@ -69,7 +69,7 @@ New entities get scaffolded subtopics (overview, auth, testing, and so on). Unus
 
 ## Import vs pointers
 
-ContextForge does not fetch Confluence, Jira, or GitHub itself.
+DevSpan does not fetch Confluence, Jira, or GitHub itself.
 
 - `import_content` stores a snapshot the caller already fetched, with source URL and timestamp.
 - `refresh_source` returns that URL so another MCP can re-fetch.
@@ -82,7 +82,7 @@ ContextForge does not fetch Confluence, Jira, or GitHub itself.
 - `import_content` never hits the network.
 - Runtime dependencies stay permissive (MIT / BSD / Apache-2.0). No copyleft.
 
-The canonical runtime description of the model is the `INSTRUCTIONS` string in `src/contextforge/server.py`. Keep it in sync with behavior.
+The canonical runtime description of the model is the `INSTRUCTIONS` string in `src/devspan/server.py`. Keep it in sync with behavior.
 
 ## What it does not do
 
@@ -96,4 +96,4 @@ These are current outs, not a backlog dump:
 
 ## Runtime vs this repo
 
-The product store is `~/.contextforge/`. This git repo is the server, the tests, and the contributor docs. Do not treat the checkout as the vault.
+The product store is `~/.devspan/`. This git repo is the server, the tests, and the contributor docs. Do not treat the checkout as the vault.

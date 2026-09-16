@@ -1,19 +1,19 @@
 ---
-description: How to use the ContextForge MCP server to load and capture engineering context. Applies to all planning and coding work; covers when to recall context and when to create/capture task context proactively.
+description: How to use the DevSpan MCP server to load and capture engineering context. Applies to all planning and coding work; covers when to recall context and when to create/capture task context proactively.
 globs:
 alwaysApply: true
 ---
 
-# ContextForge router
+# DevSpan router
 
-ContextForge is a local MCP server that stores durable, cross-repo engineering
+DevSpan is a local MCP server that stores durable, cross-repo engineering
 context (Components, Repos, Tasks, Governance) as markdown, indexed in SQLite.
 This rule is a *router* — it tells you how to use the tools. It does not contain
 the knowledge itself.
 
 ## Act proactively — do not wait to be asked
-Use ContextForge on your own initiative; the user should not have to say "add
-this to ContextForge" or "did you check ContextForge?". In particular:
+Use DevSpan on your own initiative; the user should not have to say "add
+this to DevSpan" or "did you check DevSpan?". In particular:
 
 - **When the user names or starts a ticket** (anything matching `[A-Z]+-\d+`, e.g.
   `TICKET-1234`, or phrasing like "starting/working on …"): immediately
@@ -45,7 +45,7 @@ Never invent a slug or silently create a new entity for a name that might
 already exist.
 
 ## Live external data (Jira / Confluence / GitLab)
-ContextForge stores **pointers**, not live content:
+DevSpan stores **pointers**, not live content:
 - `external_refs` on a task point at tickets/MRs — fetch their live state via the
   native Jira/GitLab/Confluence MCPs when needed.
 - `import_content(ref, content, source_url)` snapshots external content into a

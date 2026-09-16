@@ -1,10 +1,10 @@
 # Usage / Trial Logs (Development Only)
 
-This directory is for capturing ContextForge usage logs **inside the source repo** during development and dogfooding.
+This directory is for capturing DevSpan usage logs **inside the source repo** during development and dogfooding.
 
 ## Why this exists
 
-The normal logs live at `~/.contextforge/logs/contextforge.log` (or `$CONTEXTFORGE_HOME`).
+The normal logs live at `~/.devspan/logs/devspan.log` (or `$DEVSPAN_HOME`).
 Those do not travel with the git checkout.
 
 For evaluating the system it is useful to have the raw event stream live inside this repo so it can be:
@@ -16,23 +16,23 @@ For evaluating the system it is useful to have the raw event stream live inside 
 
 ## How to enable repo-local logging
 
-Set one of these environment variables when starting the ContextForge MCP server:
+Set one of these environment variables when starting the DevSpan MCP server:
 
 ```bash
 # Preferred for dev (simpler)
-export CONTEXTFORGE_DEV_LOG_DIR="$(pwd)/.system/usage-logs"
+export DEVSPAN_DEV_LOG_DIR="$(pwd)/.system/usage-logs"
 
 # Or the explicit file form
-# export CONTEXTFORGE_LOG_FILE="$(pwd)/.system/usage-logs/contextforge.log"
+# export DEVSPAN_LOG_FILE="$(pwd)/.system/usage-logs/devspan.log"
 
 # Optional: more detail
-export CONTEXTFORGE_LOG_LEVEL=INFO
+export DEVSPAN_LOG_LEVEL=INFO
 ```
 
 Then run normally:
 
 ```bash
-uv run contextforge
+uv run devspan
 ```
 
 Or put it in your project-scoped Cursor config (`.cursor/mcp.json` for this repo):
@@ -40,12 +40,12 @@ Or put it in your project-scoped Cursor config (`.cursor/mcp.json` for this repo
 ```json
 {
   "mcpServers": {
-    "contextforge": {
+    "devspan": {
       "command": "uv",
-      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/context-forge", "contextforge"],
+      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/dev-span", "devspan"],
       "env": {
-        "CONTEXTFORGE_LOG_LEVEL": "INFO",
-        "CONTEXTFORGE_DEV_LOG_DIR": "/ABSOLUTE/PATH/TO/context-forge/.system/usage-logs"
+        "DEVSPAN_LOG_LEVEL": "INFO",
+        "DEVSPAN_DEV_LOG_DIR": "/ABSOLUTE/PATH/TO/dev-span/.system/usage-logs"
       }
     }
   }
@@ -54,7 +54,7 @@ Or put it in your project-scoped Cursor config (`.cursor/mcp.json` for this repo
 
 ## Behavior
 
-- When `CONTEXTFORGE_LOG_FILE` is set, the **same events** are written to both the normal home log **and** the path you specified.
+- When `DEVSPAN_LOG_FILE` is set, the **same events** are written to both the normal home log **and** the path you specified.
 - This gives you "both places for a while".
 - The file uses the same rotating text format as the home log (easy to `tail`, `grep`, or parse).
 - You can point it at any path — it does not have to be under `.system/`.
