@@ -1,4 +1,4 @@
-# DevSpan — Design
+# DevSpan
 
 A local MCP server for durable, cross-repo engineering context. Markdown files are the source of truth. SQLite + FTS5 is a derived index. The store lives under `~/.devspan/` (override with `DEVSPAN_HOME`).
 

@@ -6,8 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Security policy: how to report a vulnerability, and what the local process can touch.
+- The tool list and each tool's side effects live in `docs/tools.md`. The README states the trust boundary.
+
 ### Changed
 
+- Each tool sets read-only, destructive, idempotent, and open-world hints. None are open to the network.
 - Renamed the product from ContextForge to DevSpan. Package, CLI, and MCP id are `devspan`. Store is `~/.devspan/` (override `DEVSPAN_HOME`). GitHub: [srmackey/dev-span](https://github.com/srmackey/dev-span).
 - Public docs now follow the product triple: [DESIGN.md](DESIGN.md) is the structure, this file is what moved, [README.md](README.md) is the draw. Contributor method files live under `_system/` and are not shipped.
 

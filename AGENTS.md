@@ -16,7 +16,7 @@ DevSpan's purpose is to provide reusable, cross-repo engineering knowledge in a 
 - **Favor explicit mechanisms.** Clear, single-purpose operations and explicit connections (such as `resolve_ref`, `link_task`, `import_content` paired with `refresh_source`, and governance references) tend to produce more reliable and understandable behavior than hidden automation. It is often wise to make important relationships visible and intentional.
 - **Keep the system intentionally small until usage justifies growth.** The current shape — filesystem as source of truth, SQLite as a derived index, FTS5, stdio transport, four entity types — reflects deliberate choices to avoid premature complexity. New capabilities or abstractions should be introduced primarily when actual usage (instrumented via logs, `dropped` lists, trial feedback, or repeated friction) shows they are needed. Most promising ideas are best left for later.
 - **Design for durability and graceful degradation.** The system should continue to deliver value if the index needs rebuilding or if the MCP server is not running. Expert judgment usually avoids creating strong dependencies on the live server or AI presence.
-- **Protect development boundaries.** Operator method lives in `_system/` (gitignored). Public structure lives in DESIGN.md. Do not mix them.
+- **Protect development boundaries.** Operator method lives in `_system/`, which is not part of this checkout. Public structure lives in DESIGN.md. Do not mix them.
 - **Consider dogfooding as one useful signal.** Using DevSpan during work on the project itself can surface practical insights.
 
 ### Questions for Expert Evaluation of Changes
@@ -106,11 +106,13 @@ All agent output (chat, docs, commits, PR text, design notes) must read like a c
 
 This is a public product. Three tracked files are the face:
 
-- `README.md` — why it exists and how to try it
-- `DESIGN.md` — how it is structured and how it works
-- `CHANGELOG.md` — what a user notices between versions
+- `README.md` is why it exists and how to try it. The first sentence is the GitHub description.
+- `DESIGN.md` is how it is structured and how it works.
+- `CHANGELOG.md` is what a user notices between versions.
+- `docs/tools.md` is the tool list. A tool add, remove, or rename updates that file and `CHANGELOG.md` together.
+- Vulnerability reports go to `SECURITY.md`, not a public issue.
 
-Operator method overlay, when this checkout has it, is `_system/` and is gitignored. A clone gets the product files above, not those papers.
+`_status/`, `inbox/`, and `_system/` are not in this checkout, so they are not gitignored. The pre-commit hook still refuses them. `PROTOCOL.md` is gitignored. It is generated and embeds a vault path. A clone gets the product files above, not those papers.
 
 `.system/usage-logs/` is the traveling trial-log drop for dogfooding (`DEVSPAN_DEV_LOG_DIR`). Log files stay gitignored. Do not put design, evolution, or trial prose there.
 

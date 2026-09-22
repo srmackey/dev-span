@@ -1,8 +1,10 @@
 # DevSpan
 
-A local MCP server for managing engineering context across **Components**, **Repos**, **Tasks**, and **Governance** entities.
+DevSpan gives an AI client durable engineering context across repositories: components, repos, tasks, and governance, stored as markdown and composed per task.
 
-Built for the cross-repo reality: a single task touches the UI repo + the API repo + the gateway + external service X + database Y. DevSpan lets you capture reusable context once and compose it per-task, with typed relationships and cross-cutting guidelines.
+Not a wiki, not standing guidance, and not a bulletin. It does not fetch external pages. An external ref is a pointer. A snapshot is stored only when the caller hands over the text.
+
+Built for the cross-repo reality: a single task touches the UI repo, the API repo, the gateway, a service you do not own, and a database. Capture the reusable facts once and compose them for the task.
 
 **Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
 
@@ -130,52 +132,27 @@ every session — that's what lets the agent use DevSpan without being told to.
 
 ## Tools
 
-**Entity management**
-- `create_component(slug, description?, kind?, aliases?, uses?, governance?)`
-- `create_repo(slug, description?, component?, aliases?, governance?)`
-- `create_task(slug, description?, aliases?, governance?)`
-- `create_governance(slug, description?, aliases?)`
-- `list_components(kind?)`, `list_repos()`, `list_tasks()`, `list_governance_entities()`
-- `delete_entity(ref)` — destructive, cascades
+The tools, what they take, and what they change are in [docs/tools.md](docs/tools.md). Each tool sets `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`. None of them are open to the network.
 
-**Context CRUD**
-- `get_context(ref)` — entity or single subtopic
-- `upsert_context(ref, content)` — create/overwrite
-- `append_context(ref, content)` — append (creates if missing)
-- `delete_context(ref)` — delete subtopic
+On initialize the server returns the operating note from the server code. This page does not repeat it.
 
-**Aliases + resolution**
-- `add_alias(ref, alias)` — globally unique nicknames
-- `remove_alias(ref, alias)`
-- `resolve_ref(query, type_filter?)` — fuzzy lookup against slugs/aliases/names
+## Trust boundary
 
-**Task composition**
-- `link_task(task_slug, refs)` / `unlink_task(task_slug, refs)`
-- `get_task_pack(task_slug, include_always?, focus?, per_entity_top_k?, min_score?)` — assembled pack (task + governance + links). With `focus=True` (default), entity-level refs with more subtopics than `per_entity_top_k` (default 3) are FTS-narrowed against the task's description + notes — only the most relevant subtopics are included. Filtered refs are listed in `dropped` so the agent can pull them on demand. Pass `focus=False` to get the full unfiltered pack.
-- `suggest_task_links(task_slug, anchors?, depth?, top_k?)` — graph + FTS suggestions
+- Transport is stdio. The host starts a local process as the user who launched it.
+- It reads and writes markdown under `DEVSPAN_HOME` (default `~/.devspan`), plus a derived SQLite index in that same folder.
+- It does not fetch URLs. `import_content` stores text the caller already has. `refresh_source` returns the stored URL so the caller can fetch it elsewhere.
+- It does not take a credential.
+- `delete_entity` removes an entity, its documents, and the links that pointed at it.
 
-**Governance**
-- `add_governance(ref, governance_ref)` — attach guideline to component/repo/task
-- `remove_governance(ref, governance_ref)`
+How to report a vulnerability is in [SECURITY.md](SECURITY.md).
 
-**External refs (Jira/GitLab/Confluence/etc.)**
-- `add_external_ref(task_slug, system, id, url?)`
-- `remove_external_ref(task_slug, system, id)`
+## Requirements
 
-**Imported content (from Confluence, Jira, GitLab, etc. via other MCPs in Cursor)**
-- `import_content(ref, content, source_url, source_name?)` — store snapshot with source tracking
-- `refresh_source(ref)` — return the source_url so the caller can re-fetch
-- `list_stale_sources(older_than_iso)`
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/)
+- FastMCP 2, over stdio
 
-**Search + config**
-- `search(query, entity_type?, limit?)` — FTS5
-- `get_config()`
-- `add_always_include(ref)` / `remove_always_include(ref)` — refs auto-included in every task pack
-- `bind_workspace(path, repo_slug)` / `unbind_workspace(path)` / `get_current_workspace(path)`
-
-**Maintenance**
-- `reindex()` — rebuild SQLite from disk
-- `tail_logs(n=50)` — recent lines from the persistent log (for usage inspection)
+There is no published package. Clone the repository and run it from the checkout, as in Install and run above.
 
 ## Resources
 
