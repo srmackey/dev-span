@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.models import ComponentKind, EntityRef, EntityType
-from contextforge.storage import Storage
+from devspan.models import ComponentKind, EntityRef, EntityType
+from devspan.storage import Storage
 
 
 def test_create_and_get_component(storage: Storage) -> None:

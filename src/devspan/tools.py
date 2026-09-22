@@ -8,17 +8,46 @@ from .models import ComponentKind, EntityRef, EntityType, ExternalRef
 from .refs import parse_ref, slugify
 from .storage import Storage
 
+# Clients treat an unset hint as destructive and open to the network.
+# Every tool here stays on the local store.
+_READ = {
+    "readOnlyHint": True,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    "openWorldHint": False,
+}
+_CREATE = {
+    "readOnlyHint": False,
+    "destructiveHint": False,
+    "idempotentHint": False,
+    "openWorldHint": False,
+}
+_WRITE = {
+    "readOnlyHint": False,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    "openWorldHint": False,
+}
+_DELETE = {
+    "readOnlyHint": False,
+    "destructiveHint": True,
+    "idempotentHint": True,
+    "openWorldHint": False,
+}
+# A second append adds more text, so it is not idempotent.
+_APPEND = _CREATE
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def register(mcp: Any, storage: Storage) -> None:
-    """Attach all ContextForge tools to the given FastMCP instance."""
+    """Attach all DevSpan tools to the given FastMCP instance."""
 
     # ---------- entity creation ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_CREATE)
     def create_component(
         slug: str,
         description: str = "",
@@ -61,7 +90,7 @@ def register(mcp: Any, storage: Storage) -> None:
         )
         return {"ref": f"component:{s}", "created": True}
 
-    @mcp.tool
+    @mcp.tool(annotations=_CREATE)
     def create_repo(
         slug: str,
         description: str = "",
@@ -96,7 +125,7 @@ def register(mcp: Any, storage: Storage) -> None:
         )
         return {"ref": f"repo:{s}", "created": True}
 
-    @mcp.tool
+    @mcp.tool(annotations=_CREATE)
     def create_task(
         slug: str,
         description: str = "",
@@ -126,7 +155,7 @@ def register(mcp: Any, storage: Storage) -> None:
         )
         return {"ref": f"task:{s}", "created": True}
 
-    @mcp.tool
+    @mcp.tool(annotations=_CREATE)
     def create_governance(
         slug: str,
         description: str = "",
@@ -157,7 +186,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- listings ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def list_components(kind: str | None = None) -> list[dict]:
         """List all Components, optionally filtered by kind.
 
@@ -168,22 +197,22 @@ def register(mcp: Any, storage: Storage) -> None:
         k = ComponentKind(kind) if kind else None
         return storage.list_entities(EntityType.COMPONENT, kind=k)
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def list_repos() -> list[dict]:
         """List all Repos."""
         return storage.list_entities(EntityType.REPO)
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def list_tasks() -> list[dict]:
         """List all Tasks."""
         return storage.list_entities(EntityType.TASK)
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def list_governance_entities() -> list[dict]:
         """List all Governance entities."""
         return storage.list_entities(EntityType.GOVERNANCE)
 
-    @mcp.tool
+    @mcp.tool(annotations=_DELETE)
     def delete_entity(ref: str) -> dict:
         """Delete an entity and ALL its subtopics. Destructive.
 
@@ -200,7 +229,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- aliases + resolution ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def add_alias(ref: str, alias: str) -> dict:
         """Add a short nickname for an entity. Globally unique.
 
@@ -213,7 +242,7 @@ def register(mcp: Any, storage: Storage) -> None:
         aliases = storage.add_alias(parsed.type, parsed.slug, alias.lower())
         return {"ref": ref, "aliases": aliases}
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def remove_alias(ref: str, alias: str) -> dict:
         """Remove an alias from an entity."""
         parsed = parse_ref(ref)
@@ -222,7 +251,7 @@ def register(mcp: Any, storage: Storage) -> None:
         aliases = storage.remove_alias(parsed.type, parsed.slug, alias.lower())
         return {"ref": ref, "aliases": aliases}
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def resolve_ref(query: str, type_filter: str | None = None) -> list[dict]:
         """Resolve a fuzzy query ("the gateway", "gw", "auth-gw") to candidate refs.
 
@@ -239,7 +268,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- context CRUD ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def get_context(ref: str) -> dict:
         """Read the current context for an entity or a single subtopic.
 
@@ -289,7 +318,7 @@ def register(mcp: Any, storage: Storage) -> None:
             ],
         }
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def upsert_context(ref: str, content: str) -> dict:
         """Create or overwrite a subtopic's full content.
 
@@ -301,7 +330,7 @@ def register(mcp: Any, storage: Storage) -> None:
         sub = storage.upsert_subtopic(parsed, content)
         return {"ref": ref, "updated_at": sub.updated_at, "upserted": True}
 
-    @mcp.tool
+    @mcp.tool(annotations=_APPEND)
     def append_context(ref: str, content: str) -> dict:
         """Append content to a subtopic, creating it if missing.
 
@@ -311,7 +340,7 @@ def register(mcp: Any, storage: Storage) -> None:
         sub = storage.append_subtopic(parsed, content)
         return {"ref": ref, "updated_at": sub.updated_at, "appended": True}
 
-    @mcp.tool
+    @mcp.tool(annotations=_DELETE)
     def delete_context(ref: str) -> dict:
         """Delete a single subtopic. Parent entity is preserved."""
         parsed = parse_ref(ref)
@@ -322,7 +351,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- imported content + sources ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def import_content(
         ref: str,
         content: str,
@@ -332,7 +361,7 @@ def register(mcp: Any, storage: Storage) -> None:
         """Store content fetched from an external source as a subtopic.
 
         Use this after another MCP tool (e.g. an Atlassian MCP for Confluence)
-        returns page content — ContextForge then owns it as a snapshot with
+        returns page content — DevSpan then owns it as a snapshot with
         source tracking. `source_fetched_at` is set to now automatically.
 
         Args:
@@ -361,11 +390,11 @@ def register(mcp: Any, storage: Storage) -> None:
             "source_fetched_at": sub.source_fetched_at,
         }
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def refresh_source(ref: str) -> dict:
         """Return the source_url for a subtopic so the caller can re-fetch.
 
-        ContextForge does NOT fetch. The caller (LLM) uses another MCP tool or
+        DevSpan does NOT fetch. The caller (LLM) uses another MCP tool or
         HTTP fetcher to retrieve fresh content, then calls import_content again
         with the same ref.
         """
@@ -382,7 +411,7 @@ def register(mcp: Any, storage: Storage) -> None:
             "source_fetched_at": sub.source_fetched_at,
         }
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def list_stale_sources(older_than_iso: str) -> list[dict]:
         """List imported subtopics whose source_fetched_at is older than a cutoff.
 
@@ -394,7 +423,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- task composition ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def link_task(task_slug: str, refs: list[str]) -> dict:
         """Wire refs (component/repo/governance, optionally with subtopic) into a task.
 
@@ -404,12 +433,12 @@ def register(mcp: Any, storage: Storage) -> None:
         """
         return {"task": f"task:{task_slug}", "links": storage.link_task(task_slug, refs)}
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def unlink_task(task_slug: str, refs: list[str]) -> dict:
         """Remove refs from a task's link list. Idempotent."""
         return {"task": f"task:{task_slug}", "links": storage.unlink_task(task_slug, refs)}
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def get_task_pack(
         task_slug: str,
         include_always: bool = True,
@@ -460,7 +489,7 @@ def register(mcp: Any, storage: Storage) -> None:
             "dropped": pack.dropped,
         }
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def suggest_task_links(
         task_slug: str,
         anchors: list[str] | None = None,
@@ -487,7 +516,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- governance ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def add_governance(ref: str, governance_ref: str) -> dict:
         """Attach a governance ref to a component/repo/task.
 
@@ -501,7 +530,7 @@ def register(mcp: Any, storage: Storage) -> None:
             "governance": storage.add_governance(parsed, governance_ref),
         }
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def remove_governance(ref: str, governance_ref: str) -> dict:
         """Detach a governance ref from an entity."""
         parsed = parse_ref(ref)
@@ -512,7 +541,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- task external refs ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def add_external_ref(
         task_slug: str,
         system: str,
@@ -521,7 +550,7 @@ def register(mcp: Any, storage: Storage) -> None:
     ) -> list[dict]:
         """Attach a reference to an external tracking system (Jira, GitHub, etc.).
 
-        ContextForge does not fetch these — it just stores pointers. Use a
+        DevSpan does not fetch these — it just stores pointers. Use a
         separate MCP server (Atlassian, GitHub, etc.) to retrieve current state.
 
         Args:
@@ -535,7 +564,7 @@ def register(mcp: Any, storage: Storage) -> None:
         )
         return [r.model_dump() for r in refs]
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def remove_external_ref(task_slug: str, system: str, id: str) -> list[dict]:
         """Detach an external reference from a task."""
         refs = storage.remove_external_ref(task_slug, system, id)
@@ -543,7 +572,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- search ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def search(query: str, entity_type: str | None = None, limit: int = 20) -> list[dict]:
         """Full-text search (SQLite FTS5) across all subtopic content.
 
@@ -557,12 +586,12 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- config: always_include ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def get_config() -> dict:
-        """Return the current ContextForge config (always_include, workspaces)."""
+        """Return the current DevSpan config (always_include, workspaces)."""
         return storage.config.as_dict()
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def add_always_include(ref: str) -> list[str]:
         """Add a ref to the always_include list.
 
@@ -572,14 +601,14 @@ def register(mcp: Any, storage: Storage) -> None:
         parse_ref(ref)  # validate
         return storage.config.add_always_include(ref)
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def remove_always_include(ref: str) -> list[str]:
         """Remove a ref from the always_include list."""
         return storage.config.remove_always_include(ref)
 
     # ---------- workspace / Roots ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def bind_workspace(path: str, repo_slug: str) -> dict:
         """Associate a local workspace path with a repo slug.
 
@@ -595,19 +624,19 @@ def register(mcp: Any, storage: Storage) -> None:
         ws = storage.config.bind_workspace(path, repo_slug)
         return {"path": str(Path(path).resolve()), "repo": repo_slug, "workspaces": ws}
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def unbind_workspace(path: str) -> dict:
         """Remove a workspace→repo binding."""
         ws = storage.config.unbind_workspace(path)
         return {"workspaces": ws}
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def get_current_workspace(path: str) -> dict:
         """Resolve a workspace path to its bound repo (and parent component, if any).
 
         Args:
             path: absolute path to check. The MCP client supplies this from its
-                Roots; ContextForge does not read Roots directly in v0.
+                Roots; DevSpan does not read Roots directly in v0.
         """
         repo_slug = storage.config.lookup_workspace(path)
         if not repo_slug:
@@ -621,7 +650,7 @@ def register(mcp: Any, storage: Storage) -> None:
 
     # ---------- maintenance ----------
 
-    @mcp.tool
+    @mcp.tool(annotations=_WRITE)
     def reindex() -> dict:
         """Rebuild the SQLite + FTS5 index from markdown files on disk.
 
@@ -630,11 +659,11 @@ def register(mcp: Any, storage: Storage) -> None:
         """
         return storage.reindex()
 
-    @mcp.tool
+    @mcp.tool(annotations=_READ)
     def tail_logs(n: int = 50) -> list[str]:
         """Return the most recent lines from the persistent usage/debug log.
 
-        The log at ~/.contextforge/logs/contextforge.log (rotating) captures
+        The log at ~/.devspan/logs/devspan.log (rotating) captures
         tool invocations, pack assemblies (with dropped counts, sizes, timings),
         entity creates, links, governance attachments, resolves, suggestions,
         context writes, and workspace binds. This is the primary signal for

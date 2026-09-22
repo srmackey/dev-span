@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from contextforge.models import EntityType
-from contextforge.storage import Storage
+from devspan.models import EntityType
+from devspan.storage import Storage
 
 
 def test_delete_entity_cleans_links_gov_and_parents(storage: Storage) -> None:

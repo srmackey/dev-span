@@ -1,0 +1,63 @@
+#!/bin/sh
+# Public-repo hygiene gate. Refuses a commit that would publish local chair
+# overlay, generated files carrying a vault path, secrets, or any term in an
+# untracked denylist. Enable with: git config core.hooksPath .githooks
+#
+# The denylist is NOT tracked. Put one term per line in .git/hygiene-denylist
+# so real names never enter the repo that this hook protects.
+#
+
+# Ignore SIGPIPE. Without this the hook dies mid-message when a caller pipes
+# commit output through head or less, and git then lets the commit through.
+trap '' PIPE
+
+fail=0
+say() { printf '%s\n' "$*" >&2; }
+bad() { fail=1; say "BLOCKED: $*"; }
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+for f in $staged; do
+  case "$f" in
+    .claude/*|.cursor/*|.grok/*|.codex/*|.agents/*) bad "host overlay staged: $f" ;;
+    PROTOCOL.md|*/PROTOCOL.md)                     bad "generated protocol staged: $f" ;;
+    STATUS.md|_status/*|*/STATUS.md)               bad "local chair status staged: $f" ;;
+    project.yaml|*/project.yaml)                   bad "local host config staged: $f" ;;
+    inbox/*|_system/*)                             bad "local-only tree staged: $f" ;;
+  esac
+done
+
+added=$(git diff --cached -U0 -- . ':(exclude).githooks/' | grep '^+' | grep -v '^+++')
+[ -z "$added" ] && added=""
+
+printf '%s\n' "$added" | grep -qi 'insitu-generated:[[:space:]]*true' &&
+  bad "staged content carries an insitu-generated header (it embeds a vault path)"
+
+printf '%s\n' "$added" | grep -qE '([A-Za-z]:[\/]Users[\/]|/home/[a-z]|/Users/[A-Za-z])' &&
+  bad "staged content contains an absolute home path"
+
+printf '%s\n' "$added" | grep -qE '(sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{12,}|BEGIN [A-Z ]*PRIVATE KEY)' &&
+  bad "staged content looks like a credential"
+
+deny="$(git rev-parse --git-dir)/hygiene-denylist"
+if [ -f "$deny" ]; then
+  while IFS= read -r term; do
+    [ -z "$term" ] && continue
+    case "$term" in \#*) continue ;; esac
+    if printf '%s\n' "$added" | grep -qiF -- "$term"; then
+      bad "staged content contains a denylisted term (line $(printf '%s\n' "$added" | grep -niF -- "$term" | head -1 | cut -d: -f1) of the staged additions)"
+    fi
+  done < "$deny"
+else
+  say "note: no $deny; name-based checks are off."
+fi
+
+if [ "$fail" -ne 0 ]; then
+  say ""
+  say "Nothing was committed. Unstage the offending paths, or fix the content."
+  say "Never use 'git add -A' in this repo; stage paths by name."
+  say "Deliberate override: git commit --no-verify"
+  exit 1
+fi
+exit 0

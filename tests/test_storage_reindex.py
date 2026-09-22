@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from contextforge.models import EntityRef, EntityType
-from contextforge.storage import Storage
+from devspan.models import EntityRef, EntityType
+from devspan.storage import Storage
 
 
 def test_reindex_restores_from_markdown(tmp_home) -> None:

@@ -88,7 +88,7 @@ def _render_pack_markdown(pack: TaskPack) -> str:
 
 
 def register(mcp: Any, storage: Storage) -> None:
-    """Attach ContextForge resources to the given FastMCP instance."""
+    """Attach DevSpan resources to the given FastMCP instance."""
 
     # Full entity views
     @mcp.resource("context://component/{slug}")

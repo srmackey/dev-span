@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from contextforge.refs import is_slug, parse_ref, slugify
-from contextforge.models import EntityRef, EntityType
+from devspan.refs import is_slug, parse_ref, slugify
+from devspan.models import EntityRef, EntityType
 
 
 class TestParseRef:

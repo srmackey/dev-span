@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from contextforge.config import Config
+from devspan.config import Config
 
 
 def test_config_defaults_and_persist(tmp_path: Path) -> None:

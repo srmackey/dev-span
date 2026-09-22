@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("contextforge.config")
+logger = logging.getLogger("devspan.config")
 
 
 _DEFAULT: dict[str, Any] = {

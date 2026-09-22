@@ -7,12 +7,12 @@ from typing import Generator
 
 import pytest
 
-from contextforge.storage import Storage
+from devspan.storage import Storage
 
 
 @pytest.fixture
 def tmp_home(tmp_path: Path) -> Path:
-    """Isolated CONTEXTFORGE_HOME for a test."""
+    """Isolated DEVSPAN_HOME for a test."""
     home = tmp_path / "cfhome"
     home.mkdir(parents=True, exist_ok=True)
     return home

@@ -1,10 +1,14 @@
-# ContextForge
+# DevSpan
 
-A local MCP server for managing engineering context across **Components**, **Repos**, **Tasks**, and **Governance** entities.
+DevSpan gives an AI client durable engineering context across repositories: components, repos, tasks, and governance, stored as markdown and composed per task.
 
-Built for the cross-repo reality: a single task touches the UI repo + the API repo + the gateway + external service X + database Y. ContextForge lets you capture reusable context once and compose it per-task, with typed relationships and cross-cutting guidelines.
+Not a wiki, not standing guidance, and not a bulletin. It does not fetch external pages. An external ref is a pointer. A snapshot is stored only when the caller hands over the text.
+
+Built for the cross-repo reality: a single task touches the UI repo, the API repo, the gateway, a service you do not own, and a database. Capture the reusable facts once and compose them for the task.
 
 **Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
+
+Structure: [DESIGN.md](DESIGN.md). What moved: [CHANGELOG.md](CHANGELOG.md).
 
 ## Model
 
@@ -19,17 +23,17 @@ Examples: `component:api-gateway`, `component:api-gateway/auth`, `repo:ui-repo/t
 
 ## Storage
 
-All data lives under `~/.contextforge/` (override with `CONTEXTFORGE_HOME`):
+All data lives under `~/.devspan/` (override with `DEVSPAN_HOME`):
 
 ```
-~/.contextforge/
+~/.devspan/
   components/{slug}/_meta.md, {subtopic}.md
   repos/{slug}/_meta.md, {subtopic}.md
   tasks/{slug}/_meta.md, {subtopic}.md
   governance/{slug}/_meta.md, {subtopic}.md
-  .index/contextforge.db       # SQLite + FTS5, rebuildable via `reindex`
+  .index/devspan.db       # SQLite + FTS5, rebuildable via `reindex`
   config.json                  # always_include refs + workspace bindings
-  logs/contextforge.log        # persistent usage + debug (rotating)
+  logs/devspan.log        # persistent usage + debug (rotating)
 ```
 
 Markdown files are the source of truth. The SQLite index is derived — if it drifts, call `reindex`.
@@ -49,9 +53,9 @@ Delete the ones you don't want.
 [`uv`](https://docs.astral.sh/uv/) is the expected package manager (install via `brew install uv` or Astral's installer).
 
 ```bash
-cd /path/to/context-forge
+cd /path/to/dev-span
 uv sync
-uv run contextforge            # stdio MCP server
+uv run devspan            # stdio MCP server
 ```
 
 Tests (pytest is a dev dependency):
@@ -63,25 +67,25 @@ uv run pytest
 
 > Behind an SSL-inspecting proxy? If `uv sync` fails with `invalid peer certificate: UnknownIssuer`, add `--system-certs` to the `uv` commands (or `export UV_SYSTEM_CERTS=1`).
 
-Logs go to stderr **and** to `~/.contextforge/logs/contextforge.log` (rotating text file, on by default). The file is the durable record for usage analysis and trials.
+Logs go to stderr **and** to `~/.devspan/logs/devspan.log` (rotating text file, on by default). The file is the durable record for usage analysis and trials.
 
-Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `CONTEXTFORGE_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity — useful for tuning `per_entity_top_k` and `min_score`.
+Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `DEVSPAN_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity — useful for tuning `per_entity_top_k` and `min_score`.
 
 Use the `tail_logs(n)` tool to inspect recent activity from inside the MCP.
 
 For development / dogfooding where you want the same events written to a second location (e.g. inside the source repo so logs travel with the checkout), set:
-- `CONTEXTFORGE_DEV_LOG_DIR=/path/to/desired/dir`   (recommended), or
-- `CONTEXTFORGE_LOG_FILE=/path/to/specific.log`
+- `DEVSPAN_DEV_LOG_DIR=/path/to/desired/dir`   (recommended), or
+- `DEVSPAN_LOG_FILE=/path/to/specific.log`
 
 You get both the normal home log *and* the extra location.
 
 ## Wire into Cursor
 
-**Install it globally, not per-project.** ContextForge is a single global store
-(`~/.contextforge/`) meant to serve *every* repo you work in. The `--directory`
+**Install it globally, not per-project.** DevSpan is a single global store
+(`~/.devspan/`) meant to serve *every* repo you work in. The `--directory`
 below only tells `uv` where this server's *code* lives — the running server reads
-`~/.contextforge/` regardless of which workspace is open, so **you never need to add
-the context-forge folder to your other repos.** Wire it once, globally, and it's
+`~/.devspan/` regardless of which workspace is open, so **you never need to add
+the dev-span folder to your other repos.** Wire it once, globally, and it's
 available everywhere.
 
 ### 1. Register the MCP server globally
@@ -93,9 +97,9 @@ repo's path on your machine:
 ```json
 {
   "mcpServers": {
-    "contextforge": {
+    "devspan": {
       "command": "uv",
-      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/context-forge", "contextforge"]
+      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/dev-span", "devspan"]
     }
   }
 }
@@ -103,16 +107,16 @@ repo's path on your machine:
 
 Behind an SSL-inspecting proxy, add `"--system-certs"` as the first entry in `args`,
 or set `UV_SYSTEM_CERTS=1` on the server's `env`. Restart Cursor (or toggle the
-server under **Settings → MCP**) and confirm the `contextforge` tools appear.
+server under **Settings → MCP**) and confirm the `devspan` tools appear.
 
 > A project-scoped [.cursor/mcp.json](.cursor/mcp.json) is also committed in this
 > repo, but it only activates when *this* repo is the open workspace — fine for
-> hacking on ContextForge itself, not for using it across your work.
+> hacking on DevSpan itself, not for using it across your work.
 
 ### 2. Make the router rule global too
 
 The MCP registration gives the agent the *tools*; the
-[.cursor/rules/contextforge-router.mdc](.cursor/rules/contextforge-router.mdc) rule
+[.cursor/rules/devspan-router.mdc](.cursor/rules/devspan-router.mdc) rule
 gives it the *behavior* (when to recall and capture context proactively). A rule
 that lives only in this repo won't apply in your other repos — so it must be global
 as well. Two equivalent options:
@@ -124,56 +128,31 @@ as well. Two equivalent options:
   after edits).
 
 Either way the rule is `alwaysApply: true`, so once it's global it's in context for
-every session — that's what lets the agent use ContextForge without being told to.
+every session — that's what lets the agent use DevSpan without being told to.
 
 ## Tools
 
-**Entity management**
-- `create_component(slug, description?, kind?, aliases?, uses?, governance?)`
-- `create_repo(slug, description?, component?, aliases?, governance?)`
-- `create_task(slug, description?, aliases?, governance?)`
-- `create_governance(slug, description?, aliases?)`
-- `list_components(kind?)`, `list_repos()`, `list_tasks()`, `list_governance_entities()`
-- `delete_entity(ref)` — destructive, cascades
+The tools, what they take, and what they change are in [docs/tools.md](docs/tools.md). Each tool sets `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`. None of them are open to the network.
 
-**Context CRUD**
-- `get_context(ref)` — entity or single subtopic
-- `upsert_context(ref, content)` — create/overwrite
-- `append_context(ref, content)` — append (creates if missing)
-- `delete_context(ref)` — delete subtopic
+On initialize the server returns the operating note from the server code. This page does not repeat it.
 
-**Aliases + resolution**
-- `add_alias(ref, alias)` — globally unique nicknames
-- `remove_alias(ref, alias)`
-- `resolve_ref(query, type_filter?)` — fuzzy lookup against slugs/aliases/names
+## Trust boundary
 
-**Task composition**
-- `link_task(task_slug, refs)` / `unlink_task(task_slug, refs)`
-- `get_task_pack(task_slug, include_always?, focus?, per_entity_top_k?, min_score?)` — assembled pack (task + governance + links). With `focus=True` (default), entity-level refs with more subtopics than `per_entity_top_k` (default 3) are FTS-narrowed against the task's description + notes — only the most relevant subtopics are included. Filtered refs are listed in `dropped` so the agent can pull them on demand. Pass `focus=False` to get the full unfiltered pack.
-- `suggest_task_links(task_slug, anchors?, depth?, top_k?)` — graph + FTS suggestions
+- Transport is stdio. The host starts a local process as the user who launched it.
+- It reads and writes markdown under `DEVSPAN_HOME` (default `~/.devspan`), plus a derived SQLite index in that same folder.
+- It does not fetch URLs. `import_content` stores text the caller already has. `refresh_source` returns the stored URL so the caller can fetch it elsewhere.
+- It does not take a credential.
+- `delete_entity` removes an entity, its documents, and the links that pointed at it.
 
-**Governance**
-- `add_governance(ref, governance_ref)` — attach guideline to component/repo/task
-- `remove_governance(ref, governance_ref)`
+How to report a vulnerability is in [SECURITY.md](SECURITY.md).
 
-**External refs (Jira/GitLab/Confluence/etc.)**
-- `add_external_ref(task_slug, system, id, url?)`
-- `remove_external_ref(task_slug, system, id)`
+## Requirements
 
-**Imported content (from Confluence, Jira, GitLab, etc. via other MCPs in Cursor)**
-- `import_content(ref, content, source_url, source_name?)` — store snapshot with source tracking
-- `refresh_source(ref)` — return the source_url so the caller can re-fetch
-- `list_stale_sources(older_than_iso)`
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/)
+- FastMCP 2, over stdio
 
-**Search + config**
-- `search(query, entity_type?, limit?)` — FTS5
-- `get_config()`
-- `add_always_include(ref)` / `remove_always_include(ref)` — refs auto-included in every task pack
-- `bind_workspace(path, repo_slug)` / `unbind_workspace(path)` / `get_current_workspace(path)`
-
-**Maintenance**
-- `reindex()` — rebuild SQLite from disk
-- `tail_logs(n=50)` — recent lines from the persistent log (for usage inspection)
+There is no published package. Clone the repository and run it from the checkout, as in Install and run above.
 
 ## Resources
 
