@@ -44,3 +44,13 @@ For each name in `enabled`:
 - Router: for each `instructions` entry with `scope: user` whose `path` ends in `.mdc`, write `devspan-router.mdc` into that file's directory. The body is `.cursor/rules/devspan-router.mdc` in this repo. Copy it as it is. Do not replace another product's file.
 
 Skip a definition you cannot apply, say which one, and continue with the other names.
+
+## Maintenance
+
+Add, remove, and a moved checkout all run the pass above.
+
+**Add.** Put the name on `enabled`. Run this pass, and the same pass for each other public product already installed. The pass writes a missing definition before it upserts. This product does not write a project protocol.
+
+**Remove.** Take the name off `enabled`. Dry-run first. For that name's server entries, list this product's key under `key`. If a user-scoped instruction path ends in `.mdc`, also list `devspan-router.mdc` in that file's directory. Write nothing. Every other key in the host file stays. On the real remove, delete only those keys and that router file.
+
+**Path refresh.** The checkout moved. Run the pass again so this product's block uses the current path. Upsert this product's key. Leave every other key alone.
