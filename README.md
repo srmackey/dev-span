@@ -79,56 +79,16 @@ For development / dogfooding where you want the same events written to a second 
 
 You get both the normal home log *and* the extra location.
 
-## Wire into Cursor
+## Install
 
-**Install it globally, not per-project.** DevSpan is a single global store
-(`~/.devspan/`) meant to serve *every* repo you work in. The `--directory`
-below only tells `uv` where this server's *code* lives — the running server reads
-`~/.devspan/` regardless of which workspace is open, so **you never need to add
-the dev-span folder to your other repos.** Wire it once, globally, and it's
-available everywhere.
+The procedure is [install/README.md](install/README.md). Host files come from `platforms.yaml` next to `nexus.md`. With no environment file, user-global host config is left alone.
 
-### 1. Register the MCP server globally
-
-Add it to your global Cursor MCP config (`~/.cursor/mcp.json`, or your
-`mcp-manager` proxy config if you use one), replacing the placeholder with this
-repo's path on your machine:
-
-```json
-{
-  "mcpServers": {
-    "devspan": {
-      "command": "uv",
-      "args": ["run", "--directory", "/ABSOLUTE/PATH/TO/dev-span", "devspan"]
-    }
-  }
-}
+```yaml
+command: uv
+args: ["run", "--directory", "/path/to/dev-span", "devspan"]
 ```
 
-Behind an SSL-inspecting proxy, add `"--system-certs"` as the first entry in `args`,
-or set `UV_SYSTEM_CERTS=1` on the server's `env`. Restart Cursor (or toggle the
-server under **Settings → MCP**) and confirm the `devspan` tools appear.
-
-> A project-scoped [.cursor/mcp.json](.cursor/mcp.json) is also committed in this
-> repo, but it only activates when *this* repo is the open workspace — fine for
-> hacking on DevSpan itself, not for using it across your work.
-
-### 2. Make the router rule global too
-
-The MCP registration gives the agent the *tools*; the
-[.cursor/rules/devspan-router.mdc](.cursor/rules/devspan-router.mdc) rule
-gives it the *behavior* (when to recall and capture context proactively). A rule
-that lives only in this repo won't apply in your other repos — so it must be global
-as well. Two equivalent options:
-
-- **Symlink** the rule into your global Cursor rules location (single source of
-  truth — edits here propagate automatically). On Windows this needs Developer Mode
-  or an elevated `mklink`.
-- **Copy** the rule into your global Cursor rules location (more portable; re-copy
-  after edits).
-
-Either way the rule is `alwaysApply: true`, so once it's global it's in context for
-every session — that's what lets the agent use DevSpan without being told to.
+The store is `~/.devspan/` (override `DEVSPAN_HOME`), one store for every repo. Other repos do not need this checkout added to them.
 
 ## Tools
 

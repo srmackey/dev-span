@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Install reads `platforms.yaml`.** The procedure is `install/README.md`. One server block is upserted into each enabled host. The host file, the format, and the key come from the stored definition. With no environment file, user-global host config is not edited. The router body that ships is the `.mdc` file only.
 - Each tool sets read-only, destructive, idempotent, and open-world hints. None are open to the network.
 - Renamed the product from ContextForge to DevSpan. Package, CLI, and MCP id are `devspan`. Store is `~/.devspan/` (override `DEVSPAN_HOME`). GitHub: [srmackey/dev-span](https://github.com/srmackey/dev-span).
 - Public docs now follow the product triple: [DESIGN.md](DESIGN.md) is the structure, this file is what moved, [README.md](README.md) is the draw. Contributor method files live under `_system/` and are not shipped.
