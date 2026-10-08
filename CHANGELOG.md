@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-08
+
+### Changed
+
+- The lineage note no longer says the v1 repository is archived. That repository is still public. This project remains the active implementation.
+- `always_include` holds any ref. A governance ref is the usual case. DESIGN had described the list as governance-only.
+
 ## [0.2.0] - 2026-10-08
 
 ### Added

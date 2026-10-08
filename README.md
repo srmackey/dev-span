@@ -6,7 +6,7 @@ Not a wiki, not standing guidance, and not a bulletin. It does not fetch externa
 
 Built for the cross-repo reality: a single task touches the UI repo, the API repo, the gateway, a service you do not own, and a database. Capture the reusable facts once and compose them for the task.
 
-**Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo is archived as the v1 path; this project is the active implementation.
+**Lineage:** evolved from the earlier file-based Cursor framework [ai-context-framework](https://github.com/srmackey/ai-context-framework) (rules · packs · graph · slash commands). That repo remains the v1 path. This project is the active implementation.
 
 Structure: [DESIGN.md](DESIGN.md). What moved: [CHANGELOG.md](CHANGELOG.md).
 
