@@ -49,7 +49,7 @@ Markdown is authoritative. `reindex` rebuilds SQLite. One SQLite connection per 
 
 New entities get scaffolded subtopics (overview, auth, testing, and so on). Unused files can be deleted.
 
-`config.json` holds `always_include` governance refs and workspace bindings (`bind_workspace` / `get_current_workspace`).
+`config.json` holds `always_include` refs and workspace bindings (`bind_workspace` / `get_current_workspace`). Any ref is accepted. A governance ref is the usual case.
 
 ## Task packs
 
