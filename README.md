@@ -52,6 +52,17 @@ Delete the ones you don't want.
 
 [`uv`](https://docs.astral.sh/uv/) is the expected package manager (install via `brew install uv` or Astral's installer).
 
+The install procedure is [install/README.md](install/README.md). Host files come from `platforms.yaml` next to `nexus.md`. With no environment file, user-global host config is left alone. Each enabled host gets this server block:
+
+```yaml
+command: uv
+args: ["run", "--directory", "/path/to/dev-span", "devspan"]
+```
+
+The store is `~/.devspan/` (override `DEVSPAN_HOME`), one store for every repo. Other repos do not need this checkout added to them.
+
+To run the server by hand:
+
 ```bash
 cd /path/to/dev-span
 uv sync
@@ -69,7 +80,7 @@ uv run pytest
 
 Logs go to stderr **and** to `~/.devspan/logs/devspan.log` (rotating text file, on by default). The file is the durable record for usage analysis and trials.
 
-Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `DEVSPAN_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity — useful for tuning `per_entity_top_k` and `min_score`.
+Default level is `INFO` (pack assembly summaries, creates, links, governance, resolves, etc.). Set `DEVSPAN_LOG_LEVEL=DEBUG` for full FTS scoring breakdowns per entity, useful for tuning `per_entity_top_k` and `min_score`.
 
 Use the `tail_logs(n)` tool to inspect recent activity from inside the MCP.
 
@@ -78,17 +89,6 @@ For development / dogfooding where you want the same events written to a second 
 - `DEVSPAN_LOG_FILE=/path/to/specific.log`
 
 You get both the normal home log *and* the extra location.
-
-## Install
-
-The procedure is [install/README.md](install/README.md). Host files come from `platforms.yaml` next to `nexus.md`. With no environment file, user-global host config is left alone.
-
-```yaml
-command: uv
-args: ["run", "--directory", "/path/to/dev-span", "devspan"]
-```
-
-The store is `~/.devspan/` (override `DEVSPAN_HOME`), one store for every repo. Other repos do not need this checkout added to them.
 
 ## Tools
 
