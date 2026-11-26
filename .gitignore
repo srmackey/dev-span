@@ -22,4 +22,13 @@ uv.lock
 
 # Generated composed protocol. Rematerializes; embeds a vault path.
 PROTOCOL.md
+project.yaml
+
+# Skill copies stay ignored. Grok still loads them.
+# Grok skips a gitignored rule file. Claude and Cursor still load one.
+.claude/
+.cursor/
+.grok/*
+!.grok/rules/
+!.grok/rules/**
 
